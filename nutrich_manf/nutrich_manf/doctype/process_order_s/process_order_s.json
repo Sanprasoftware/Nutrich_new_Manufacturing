@@ -1,0 +1,351 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{process_name}",
+ "creation": "2024-12-08 15:35:44.883864",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "process_name",
+  "process_type",
+  "process_definition",
+  "column_break_rfnh",
+  "date",
+  "department",
+  "project",
+  "process_order_qty",
+  "in_qty",
+  "update_qty",
+  "section_break_grud",
+  "process_definition_raw",
+  "section_break_btrj",
+  "total_raw_qty",
+  "column_break_eubw",
+  "total_raw_amount",
+  "section_break_jdhv",
+  "process_definition_cost",
+  "section_break_rgrp",
+  "per_kg_cost",
+  "column_break_vfag",
+  "total_cost",
+  "section_break_hcgj",
+  "process_definition_finish",
+  "section_break_wqsx",
+  "total_finish_qty",
+  "column_break_qlnx",
+  "total_finish_amount",
+  "section_break_lols",
+  "process_definition_scrap",
+  "section_break_ikgg",
+  "total_scrap_qty",
+  "column_break_lsvk",
+  "total_scrap_amount",
+  "section_break_isul",
+  "total_in_qty",
+  "per_completed",
+  "total_out_qty",
+  "difference_quantity",
+  "column_break_gwlb",
+  "total_in_amount",
+  "total_out_material_amount",
+  "difference_amount",
+  "process_in_out_difference",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "process_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Process Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "process_type",
+   "fieldtype": "Link",
+   "label": "Process Type",
+   "options": "Process Type s",
+   "reqd": 1
+  },
+  {
+   "fieldname": "process_definition",
+   "fieldtype": "Link",
+   "label": "Process Definition",
+   "options": "Process Definition s"
+  },
+  {
+   "fieldname": "column_break_rfnh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "process_order_qty",
+   "fieldtype": "Float",
+   "label": "Process Order Qty",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_grud",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "process_definition_raw",
+   "fieldtype": "Table",
+   "label": "Raw Material In (Order)",
+   "options": "Process Order raw"
+  },
+  {
+   "fieldname": "section_break_btrj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_raw_qty",
+   "fieldtype": "Float",
+   "label": "Total Raw Qty",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_eubw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_raw_amount",
+   "fieldtype": "Float",
+   "label": "Total Raw Amount",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_break_jdhv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "process_definition_cost",
+   "fieldtype": "Table",
+   "label": "Process Cost In (Order)",
+   "options": "Process Order Cost"
+  },
+  {
+   "fieldname": "total_cost",
+   "fieldtype": "Float",
+   "label": "Total Cost",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_break_hcgj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "process_definition_finish",
+   "fieldtype": "Table",
+   "label": "Finish Items Out (Order)",
+   "options": "Process Order Finish"
+  },
+  {
+   "fieldname": "section_break_wqsx",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_finish_qty",
+   "fieldtype": "Float",
+   "label": "Total Finish Qty",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_qlnx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_finish_amount",
+   "fieldtype": "Float",
+   "label": "Total Finish Amount",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_break_lols",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "process_definition_scrap",
+   "fieldtype": "Table",
+   "label": "Scrap Items Out (Order)",
+   "options": "Process Order Scrap"
+  },
+  {
+   "fieldname": "section_break_isul",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_scrap_qty",
+   "fieldtype": "Float",
+   "label": "Total Scrap Qty",
+   "precision": "2"
+  },
+  {
+   "fieldname": "total_out_qty",
+   "fieldtype": "Float",
+   "label": "Total Out Qty",
+   "precision": "2"
+  },
+  {
+   "fieldname": "total_scrap_amount",
+   "fieldtype": "Float",
+   "label": "Total Scrap Amount",
+   "precision": "2"
+  },
+  {
+   "fieldname": "total_out_material_amount",
+   "fieldtype": "Float",
+   "label": "Total Out Material Amount",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_gwlb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "difference_quantity",
+   "fieldtype": "Float",
+   "label": "Difference Quantity",
+   "precision": "2"
+  },
+  {
+   "fieldname": "difference_amount",
+   "fieldtype": "Float",
+   "label": "Difference Amount",
+   "precision": "2"
+  },
+  {
+   "fieldname": "process_in_out_difference",
+   "fieldtype": "Float",
+   "label": "Process In Out Difference ",
+   "precision": "2"
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project",
+   "reqd": 1
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "Manufacturing Department s",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "in_qty",
+   "fieldtype": "Check",
+   "label": "In Qty"
+  },
+  {
+   "fieldname": "update_qty",
+   "fieldtype": "Button",
+   "label": "Update Qty"
+  },
+  {
+   "fieldname": "section_break_ikgg",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_lsvk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_in_qty",
+   "fieldtype": "Float",
+   "label": "Total In Qty",
+   "precision": "2"
+  },
+  {
+   "fieldname": "per_completed",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "% Completed",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_in_amount",
+   "fieldtype": "Float",
+   "label": "Total In Amount",
+   "precision": "2"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Process Order s",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "per_kg_cost",
+   "fieldtype": "Float",
+   "label": "Per Kg Cost",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_break_rgrp",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_vfag",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [
+  {
+   "link_doctype": "Batch Order s",
+   "link_fieldname": "process_order"
+  },
+  {
+   "link_doctype": "Gate Pass s",
+   "link_fieldname": "reference"
+  },
+  {
+   "link_doctype": "Out Subcontracting s",
+   "link_fieldname": "process_order"
+  }
+ ],
+ "modified": "2026-03-27 15:51:39.215453",
+ "modified_by": "Administrator",
+ "module": "Nutrich_Manf",
+ "name": "Process Order s",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

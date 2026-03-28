@@ -1,0 +1,141 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-02-13 10:55:57.513799",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "ref_challan",
+  "batch_id",
+  "raw_item_code",
+  "raw_item_name",
+  "column_break_eflev",
+  "production_quantity",
+  "production_done_quantity",
+  "production_remain_quantity",
+  "process_def_id",
+  "column_break_nt7lx",
+  "check",
+  "uom",
+  "batch_no",
+  "warehouse"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "ref_challan",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Referance Challan",
+   "options": "Out Subcontracting s",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "batch_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Batch Id",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "raw_item_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Raw Item Code",
+   "options": "Item",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "raw_item_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": " Raw Item Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_eflev",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 1,
+   "fieldname": "production_quantity",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Out Quantity",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "production_done_quantity",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Production Done QTY",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "production_remain_quantity",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "in_list_view": 1,
+   "label": "Production Remain QTY",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "process_def_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Process Order ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_nt7lx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "check",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Check"
+  },
+  {
+   "fieldname": "uom",
+   "fieldtype": "Link",
+   "label": "UOM",
+   "options": "UOM"
+  },
+  {
+   "fieldname": "batch_no",
+   "fieldtype": "Link",
+   "label": "Batch No",
+   "options": "Batch"
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "label": "Warehouse",
+   "options": "Warehouse"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-02-13 11:20:40.445373",
+ "modified_by": "Administrator",
+ "module": "Nutrich_Manf",
+ "name": "Get Item List s",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,0 +1,227 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-02-05 10:19:08.988793",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_8ban",
+  "amended_from",
+  "section_break_sfiz",
+  "select_inout",
+  "column_break_rgvi",
+  "posting_date",
+  "date_and_time_in",
+  "date_and_time_out",
+  "column_break_tykc",
+  "company",
+  "vehicle_no",
+  "party_details_section",
+  "party_type",
+  "column_break_mnyi",
+  "party",
+  "reference_details_section",
+  "reference_doctype",
+  "column_break_nwaj",
+  "reference",
+  "section_break_zduy",
+  "customer",
+  "customer_name",
+  "column_break_rxhy",
+  "address",
+  "billing_address",
+  "commodity_details_section",
+  "gate_pass_items",
+  "section_break_bxyn",
+  "remark"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_8ban",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Gate Pass s",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "section_break_sfiz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "select_inout",
+   "fieldtype": "Select",
+   "label": "Select In/Out",
+   "options": "\nIn\nOut"
+  },
+  {
+   "fieldname": "column_break_rgvi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.select_inout ==\"In\"",
+   "fieldname": "date_and_time_in",
+   "fieldtype": "Time",
+   "label": "In Time"
+  },
+  {
+   "depends_on": "eval:doc.select_inout ==\"Out\"",
+   "fieldname": "date_and_time_out",
+   "fieldtype": "Time",
+   "label": "Out Time"
+  },
+  {
+   "fieldname": "column_break_tykc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "vehicle_no",
+   "fieldtype": "Data",
+   "label": "Vehicle No"
+  },
+  {
+   "fieldname": "party_details_section",
+   "fieldtype": "Section Break",
+   "label": "Party Details"
+  },
+  {
+   "fieldname": "party_type",
+   "fieldtype": "Link",
+   "label": "Party Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "column_break_mnyi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "party",
+   "fieldtype": "Dynamic Link",
+   "label": "Party",
+   "options": "party_type"
+  },
+  {
+   "fieldname": "reference_details_section",
+   "fieldtype": "Section Break",
+   "label": "Reference Details"
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference Doctype",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "column_break_nwaj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reference",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference",
+   "options": "reference_doctype"
+  },
+  {
+   "fieldname": "section_break_zduy",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fetch_from": "customer.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name"
+  },
+  {
+   "fieldname": "column_break_rxhy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: doc.customer",
+   "fieldname": "address",
+   "fieldtype": "Link",
+   "label": "Address",
+   "options": "Address"
+  },
+  {
+   "fetch_from": "customer.primary_address",
+   "fieldname": "billing_address",
+   "fieldtype": "Small Text",
+   "label": "Billing Address"
+  },
+  {
+   "fieldname": "section_break_bxyn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "remark",
+   "fieldtype": "Small Text",
+   "label": "Remark"
+  },
+  {
+   "fieldname": "commodity_details_section",
+   "fieldtype": "Section Break",
+   "label": "Commodity Details"
+  },
+  {
+   "fieldname": "gate_pass_items",
+   "fieldtype": "Table",
+   "label": "Gate Pass Items",
+   "options": "Gate Pass Items s"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-02-05 13:03:24.281425",
+ "modified_by": "Administrator",
+ "module": "Nutrich_Manf",
+ "name": "Gate Pass s",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

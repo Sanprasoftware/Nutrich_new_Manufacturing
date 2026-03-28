@@ -1,0 +1,254 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:{process_name}",
+ "creation": "2024-12-08 14:29:16.349413",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "process_name",
+  "process_type",
+  "column_break_rfnh",
+  "date",
+  "section_break_grud",
+  "process_definition_raw",
+  "section_break_btrj",
+  "total_raw_qty",
+  "column_break_eubw",
+  "total_raw_amount",
+  "section_break_jdhv",
+  "process_definition_cost",
+  "total_cost",
+  "section_break_hcgj",
+  "process_definition_finish",
+  "section_break_wqsx",
+  "total_finish_qty",
+  "column_break_qlnx",
+  "total_finish_amount",
+  "section_break_lols",
+  "process_definition_scrap",
+  "section_break_isul",
+  "total_scrap_qty",
+  "column_break_thqq",
+  "total_scrap_amount",
+  "section_break_ciki",
+  "total_in_qty",
+  "total_out_qty",
+  "difference_quantity",
+  "column_break_gnxx",
+  "total_in_amount",
+  "total_out_material_amount",
+  "difference_amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "process_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Process Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "process_type",
+   "fieldtype": "Link",
+   "label": "Process Type",
+   "options": "Process Type s",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_rfnh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_grud",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "process_definition_raw",
+   "fieldtype": "Table",
+   "label": "Raw Material In (Definition)",
+   "options": "Process Definition raw"
+  },
+  {
+   "fieldname": "section_break_btrj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_raw_qty",
+   "fieldtype": "Float",
+   "label": "Total Raw Qty",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_eubw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_raw_amount",
+   "fieldtype": "Float",
+   "label": "Total Raw Amount",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_break_jdhv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "process_definition_cost",
+   "fieldtype": "Table",
+   "label": "Process Cost In (Definition)",
+   "options": "Process Definition Cost"
+  },
+  {
+   "fieldname": "total_cost",
+   "fieldtype": "Float",
+   "label": "Total Cost",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_break_hcgj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "process_definition_finish",
+   "fieldtype": "Table",
+   "label": "Finish Items Out (Definition)",
+   "options": "Process Definition Finish"
+  },
+  {
+   "fieldname": "section_break_wqsx",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_finish_qty",
+   "fieldtype": "Float",
+   "label": "Total Finish Qty",
+   "precision": "3"
+  },
+  {
+   "fieldname": "column_break_qlnx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_finish_amount",
+   "fieldtype": "Float",
+   "label": "Total Finish Amount",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_break_lols",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "process_definition_scrap",
+   "fieldtype": "Table",
+   "label": "Scrap Items Out (Definition)",
+   "options": "Process Definition Scrap"
+  },
+  {
+   "fieldname": "section_break_isul",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_scrap_qty",
+   "fieldtype": "Float",
+   "label": "Total Scrap Qty",
+   "precision": "3"
+  },
+  {
+   "fieldname": "total_out_qty",
+   "fieldtype": "Float",
+   "label": "Total Out Qty",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_thqq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_scrap_amount",
+   "fieldtype": "Float",
+   "label": "Total Scrap Amount",
+   "precision": "2"
+  },
+  {
+   "fieldname": "total_out_material_amount",
+   "fieldtype": "Float",
+   "label": "Total Out Material Amount",
+   "precision": "2"
+  },
+  {
+   "fieldname": "difference_quantity",
+   "fieldtype": "Float",
+   "label": "Difference Quantity",
+   "precision": "2"
+  },
+  {
+   "fieldname": "difference_amount",
+   "fieldtype": "Float",
+   "label": "Difference Amount",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_break_ciki",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_gnxx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_in_qty",
+   "fieldtype": "Float",
+   "label": "Total In Qty",
+   "precision": "2"
+  },
+  {
+   "fieldname": "total_in_amount",
+   "fieldtype": "Float",
+   "label": "Total In Amount",
+   "precision": "2"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "link_doctype": "Process Order s",
+   "link_fieldname": "process_definition"
+  }
+ ],
+ "modified": "2026-03-02 15:02:14.313092",
+ "modified_by": "Administrator",
+ "module": "Nutrich_Manf",
+ "name": "Process Definition s",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

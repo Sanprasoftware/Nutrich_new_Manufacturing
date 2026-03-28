@@ -1,0 +1,77 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-02-13 11:00:34.682933",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "reference_challan",
+  "operations",
+  "cost",
+  "is_check",
+  "definition_cost",
+  "process_order_cost"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "reference_challan",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reference Challan",
+   "options": "Out Subcontracting s"
+  },
+  {
+   "columns": 2,
+   "fieldname": "operations",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Operations",
+   "options": "Account"
+  },
+  {
+   "allow_on_submit": 1,
+   "columns": 2,
+   "fieldname": "cost",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Cost"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_check",
+   "fieldtype": "Check",
+   "label": "IS check"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "definition_cost",
+   "fieldtype": "Float",
+   "label": "Definition Cost",
+   "precision": "2"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "process_order_cost",
+   "fieldtype": "Float",
+   "label": "Process Order Cost",
+   "precision": "2"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-02-13 11:23:58.711347",
+ "modified_by": "Administrator",
+ "module": "Nutrich_Manf",
+ "name": "Operation Costs s",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

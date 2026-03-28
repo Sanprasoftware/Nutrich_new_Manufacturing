@@ -1,0 +1,51 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-12-08 15:12:27.847467",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "operation",
+  "per_kg_cost",
+  "cost"
+ ],
+ "fields": [
+  {
+   "fieldname": "operation",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Operation",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "per_kg_cost",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Per Kg Cost",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cost",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Cost",
+   "precision": "2"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-12-08 23:21:17.386650",
+ "modified_by": "Administrator",
+ "module": "Nutrich_Manf",
+ "name": "Process Order Cost",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
