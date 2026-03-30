@@ -14,7 +14,7 @@ class OutSubcontractings(Document):
 
 	def _calculate_totals(self):
 		total_qty = 0.0
-		total_amount = 0.0
+		total_amount = 0.0 
 
 		for row in self.items or []:
 			qty = flt(row.quantity) 
@@ -44,6 +44,7 @@ class OutSubcontractings(Document):
 		stock_entry.stock_entry_type = "Material Transfer"
 		stock_entry.posting_date = self.posting_date
 		stock_entry.posting_time = self.posting_time
+		stock_entry.custom_out_subcontracting_id = self.name
 		# stock_entry.from_warehouse = self.from_warehouse
 		# stock_entry.to_warehouse = self.to_warehouse
 		for item in self.items:

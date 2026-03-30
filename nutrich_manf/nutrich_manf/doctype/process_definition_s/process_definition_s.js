@@ -18,7 +18,7 @@ frappe.ui.form.on("Process Definition s", {
 });
 
 frappe.ui.form.on("Process Definition raw", {
-    qty(frm,cdt,cdn){
+    qty(frm,cdt,cdn){ 
         calculateAmt(frm)  
     },
     rate(frm,cdt,cdn){

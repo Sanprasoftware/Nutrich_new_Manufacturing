@@ -9,7 +9,7 @@ from frappe.model.document import Document
 from frappe.utils import today, add_months
 from frappe.desk.query_report import generate_report_result as get_report
 from frappe.model.mapper import get_mapped_doc
-from frappe.utils import flt
+from frappe.utils import flt 
 
 
 
@@ -95,6 +95,7 @@ class BatchOrders(Document):
 			update_modified=False,
 		)
 	
+	# ow.qty = self.quantity * row.yeild / 100
 	@frappe.whitelist()
 	def update_qty_button(self):
 		if self.quantity and self.process_definition_raw:
@@ -154,6 +155,12 @@ class BatchOrders(Document):
 				total_cost += row.cost
 		self.total_cost = total_cost
 
+	@frappe.whitelist()
+	def update_cost(self):
+		for row in self.process_definition_cost:
+			row.per_kg_cost = row.cost / self.total_raw_qty if self.total_raw_qty else 0
+		# self.refresh()
+
   
 	# Process Definition Finish Child Table Calculations------------------------------------------------------------------------------------
 	@frappe.whitelist()
@@ -178,8 +185,11 @@ class BatchOrders(Document):
 			) or 0
 
 			if row.item_code and row.yeild:
-				row.qty = (row.yeild / 100) * (self.total_raw_qty or 0)
+				# row.qty = (row.yeild / 100) * (self.total_raw_qty or 0)
 				row.total_cost = (row.qty or 0) * val_rate
+
+			if row.item_code and row.qty:
+				row.yeild = row.qty / self.quantity * 100
 
 			if self.process_type and row.item_code:
 				row.manufacturing_rate = manuf_rate
@@ -260,8 +270,11 @@ class BatchOrders(Document):
 			) or 0
 
 			if row.item_code and row.yeild:
-				row.qty = (row.yeild / 100) * (self.total_raw_qty or 0)
+				# row.qty = (row.yeild / 100) * (self.total_raw_qty or 0)
 				row.total_cost = (row.qty or 0) * val_rate
+			
+			if row.item_code and row.qty:
+				row.yeild = row.qty / self.quantity * 100
 
 			if self.process_type and row.item_code:
 				row.manufacturing_rate = manuf_rate

@@ -16,7 +16,7 @@ class ProcessDefinitions(Document):
 
 
 		self.calculate_total_out_qty_amount()
-		self.calculatate_cost()
+		self.calculatate_cost() 
 
 	# def _validate_batch_required(self):
 	# 	missing = []

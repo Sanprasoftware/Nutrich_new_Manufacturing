@@ -8,7 +8,7 @@ frappe.ui.form.on("Batch Order s", {
                 frm.refresh_fields();
             }
         })
-    },
+    }, 
     refresh(frm) {
         if (frm.is_new()) return;
 
@@ -65,6 +65,16 @@ frappe.ui.form.on("Process Batch Cost", {
     process_definition_cost_delete(frm,cdt,cdn){
         calculate_cost(frm)  
     },
+    cost(frm,cdt,cdn){
+        frappe.call({
+            method: "update_cost",
+            doc: frm.doc,
+            callback: function(r){
+                console.log(r)
+                frm.refresh_fields(["per_kg_cost"]);
+            }
+        })  
+    }
 });
 
 function calculate_cost(frm){

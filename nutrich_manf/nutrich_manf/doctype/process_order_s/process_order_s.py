@@ -17,7 +17,7 @@ class ProcessOrders(Document):
 		self.process_definition_finish_amount()
 		self.calculate_process_definition_scrap_amount()
 
-
+ 
 		self.calculate_total_out_qty_amount() 
 		self.calculatate_cost()
 		self.set_per_completed()

@@ -6,7 +6,7 @@ frappe.ui.form.on("Process Order s", {
             callback: function(r){
                 console.log(r)
                 frm.refresh_fields();
-            }
+            } 
         })
     },
     refresh(frm) {  

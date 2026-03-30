@@ -12,7 +12,7 @@ frappe.ui.form.on("Out Subcontracting s", {
 			frm.set_value("company_address_gstin", "");
 			return;
 		}
- 
+  
 		set_supplier_gstin_from_default_address(frm);
 
 		if (!frm.doc.company) {
