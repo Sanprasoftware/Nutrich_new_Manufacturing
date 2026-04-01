@@ -16,7 +16,7 @@ class OutSubcontractings(Document):
 		total_qty = 0.0
 		total_amount = 0.0 
 
-		for row in self.items or []:
+		for row in self.items or []: 
 			qty = flt(row.quantity) 
 			rate = flt(row.rate)
 
@@ -41,7 +41,7 @@ class OutSubcontractings(Document):
 	def create_stock_entry(self):
 		stock_entry = frappe.new_doc("Stock Entry")
 		stock_entry.naming_series = "MTR/.FY./.#"
-		stock_entry.stock_entry_type = "Material Transfer"
+		stock_entry.stock_entry_type = "Sub Contracting Out"
 		stock_entry.posting_date = self.posting_date
 		stock_entry.posting_time = self.posting_time
 		stock_entry.custom_out_subcontracting_id = self.name
@@ -58,5 +58,67 @@ class OutSubcontractings(Document):
 				"s_warehouse": item.source_warehouse,
 				"t_warehouse": item.target_warehouse
 			})
-		stock_entry.save()
+		stock_entry.save()				
 		stock_entry.submit()
+
+	def _get_department_details_for_in_subcontracting(self):
+		department_name = None
+
+		if self.process_order:
+			department_name = frappe.db.get_value("Process Order s", self.process_order, "department")
+
+		if not department_name and self.source_warehouse and self.target_warehouse:
+			department_name = frappe.db.get_value(
+				"Manufacturing Department s",
+				{
+					"source_warehouse": self.source_warehouse,
+					"target_warehouse": self.target_warehouse,
+				},
+				"name",
+			)
+
+		if not department_name:
+			return None
+
+		department_doc = frappe.get_cached_doc("Manufacturing Department s", department_name)
+		return {
+			"department": department_doc.name,
+			"source_warehouse": department_doc.source_warehouse,
+			"target_warehouse": department_doc.target_warehouse,
+			"wip_warehuse": department_doc.wip_warehouse,
+		}
+
+	@frappe.whitelist()
+	def create_in_subcontracting(self):
+
+		insub = frappe.new_doc("In Subcontracting s")
+		insub.supplier = self.supplier
+		insub.supplier_name = self.supplier_name
+		insub.posting_date = self.posting_date
+		insub.posting_time = self.posting_time
+		insub.company = self.company
+		insub.cost_center = self.cost_center
+		insub.target_warehouse = self.target_warehouse
+		insub.source_warehouse = self.source_warehouse
+		insub.out_subcontracting_id = self.name
+
+		for row in self.items:
+			insub.append("in_raw_material", {
+				"referance_challan": insub.name,
+				"item": row.item,
+				"yeild": row.get("yield"),
+				"rate": row.rate,
+				"uom": row.uom,
+				"quantity": row.quantity,
+				# "production_done_quantity": row.quantity,
+				# "manufacturing_rate": row.rate,
+				# "basic_value": row.amount,
+				# "sale_value": row.amount,
+				# "operation_cost": row.operation_cost,
+				# "valuation_rate": row.valuation_rate,
+				# "total_cost": row.total_cost,
+				# "batch_no": row.batch_no,
+				# "warehouse": row.source_warehouse
+			})
+
+		return insub

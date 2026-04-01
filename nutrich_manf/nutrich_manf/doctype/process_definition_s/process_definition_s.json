@@ -11,6 +11,7 @@
   "process_type",
   "column_break_rfnh",
   "date",
+  "company",
   "section_break_grud",
   "process_definition_raw",
   "section_break_btrj",
@@ -217,6 +218,13 @@
    "fieldtype": "Float",
    "label": "Total In Amount",
    "precision": "2"
+  },
+  {
+   "default": "Nutrich Foods Pvt Ltd",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -226,7 +234,7 @@
    "link_fieldname": "process_definition"
   }
  ],
- "modified": "2026-03-02 15:02:14.313092",
+ "modified": "2026-04-01 10:08:21.969119",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "Process Definition s",

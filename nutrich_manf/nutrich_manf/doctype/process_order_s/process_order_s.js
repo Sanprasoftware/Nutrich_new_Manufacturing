@@ -14,7 +14,7 @@ frappe.ui.form.on("Process Order s", {
         //Create Batch Order Button + Connection "+" Code
         if (frm.is_new()) return;
         frm.make_methods = frm.make_methods || {};
-        frm.make_methods["Batch Order s"] = () => {
+        frm.make_methods["Batch Order s"] = () => { 
             frappe.model.open_mapped_doc({
                 method:
                     "nutrich_manf.nutrich_manf.doctype.process_order_s.process_order_s.make_batch_order",

@@ -15,7 +15,7 @@ class ProcessOrders(Document):
 		self._validate_batch_required()
 		self.process_defination_raw_amount()
 		self.process_definition_finish_amount()
-		self.calculate_process_definition_scrap_amount()
+		self.calculate_process_definition_scrap_amount() 
 
  
 		self.calculate_total_out_qty_amount() 

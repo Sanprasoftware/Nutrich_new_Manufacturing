@@ -28,16 +28,14 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Referance Challan",
-   "options": "Out Subcontracting s",
-   "read_only": 1
+   "options": "Out Subcontracting s"
   },
   {
    "columns": 1,
    "fieldname": "batch_id",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Batch Id",
-   "read_only": 1
+   "label": "Batch Id"
   },
   {
    "columns": 1,
@@ -45,16 +43,14 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Raw Item Code",
-   "options": "Item",
-   "read_only": 1
+   "options": "Item"
   },
   {
    "columns": 1,
    "fieldname": "raw_item_name",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": " Raw Item Name",
-   "read_only": 1
+   "label": " Raw Item Name"
   },
   {
    "fieldname": "column_break_eflev",
@@ -65,16 +61,14 @@
    "fieldname": "production_quantity",
    "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Out Quantity",
-   "read_only": 1
+   "label": "Out Quantity"
   },
   {
    "columns": 1,
    "fieldname": "production_done_quantity",
    "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Production Done QTY",
-   "read_only": 1
+   "label": "Production Done QTY"
   },
   {
    "columns": 1,
@@ -82,16 +76,14 @@
    "fieldtype": "Float",
    "hidden": 1,
    "in_list_view": 1,
-   "label": "Production Remain QTY",
-   "read_only": 1
+   "label": "Production Remain QTY"
   },
   {
    "columns": 1,
    "fieldname": "process_def_id",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Process Order ID",
-   "read_only": 1
+   "label": "Process Order ID"
   },
   {
    "fieldname": "column_break_nt7lx",
@@ -128,7 +120,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-02-13 11:20:40.445373",
+ "modified": "2026-03-31 10:22:04.581666",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "Get Item List s",

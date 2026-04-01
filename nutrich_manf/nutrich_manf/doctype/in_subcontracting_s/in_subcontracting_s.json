@@ -12,6 +12,7 @@
   "supplier_name",
   "department",
   "batch_order_naming_series",
+  "out_subcontracting_id",
   "column_break_xtpp",
   "posting_date",
   "posting_time",
@@ -328,13 +329,19 @@
    "fieldname": "rounded_total",
    "fieldtype": "Currency",
    "label": "Rounded Total"
+  },
+  {
+   "fieldname": "out_subcontracting_id",
+   "fieldtype": "Link",
+   "label": "Out Subcontracting Id",
+   "options": "Out Subcontracting s"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-13 11:12:40.959288",
+ "modified": "2026-03-31 10:23:22.180596",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "In Subcontracting s",

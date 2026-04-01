@@ -2,6 +2,26 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Out Subcontracting s", {
+	refresh(frm) {
+		  if (!frm.is_new()) {
+
+            frm.add_custom_button("In Subcontracting", function() {
+
+                frm.call({
+                    method: "create_in_subcontracting",
+                    doc: frm.doc,
+                    callback: function(r) {
+
+                        if (r.message) {
+                            let doc = frappe.model.sync(r.message)[0];
+                            frappe.set_route("Form", doc.doctype, doc.name);  
+                        }
+                    }    
+                });
+ 
+            });
+		}
+	},
 	supplier(frm) {
 		if (!frm.doc.supplier) {
 			frm.set_value("supplier_address", "");
@@ -11,7 +31,7 @@ frappe.ui.form.on("Out Subcontracting s", {
 			frm.set_value("company_address_texteditor", "");
 			frm.set_value("company_address_gstin", "");
 			return;
-		}
+		} 
   
 		set_supplier_gstin_from_default_address(frm);
 
