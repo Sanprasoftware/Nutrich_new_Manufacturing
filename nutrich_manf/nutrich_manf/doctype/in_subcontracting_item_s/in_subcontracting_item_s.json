@@ -8,16 +8,13 @@
  "engine": "InnoDB",
  "field_order": [
   "ref_challan",
-  "raw_item",
-  "batch_id",
   "finished_item",
   "finished_item_name",
-  "column_break_3839p",
-  "yeild",
   "qty",
+  "column_break_3839p",
+  "warehouse",
   "rate",
   "amount",
-  "raw_qty",
   "batch_no"
  ],
  "fields": [
@@ -29,43 +26,22 @@
    "read_only": 1
   },
   {
-   "fieldname": "raw_item",
-   "fieldtype": "Link",
-   "label": "Raw Item",
-   "options": "Item",
-   "read_only": 1
-  },
-  {
-   "fieldname": "batch_id",
-   "fieldtype": "Data",
-   "label": "Batch ID",
-   "read_only": 1
-  },
-  {
    "fieldname": "finished_item",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Finished Item",
    "options": "Item",
-   "read_only": 1,
    "reqd": 1
   },
   {
    "fetch_from": "finished_item.item_name",
    "fieldname": "finished_item_name",
    "fieldtype": "Data",
-   "label": "Finished Item Name",
-   "read_only": 1
+   "label": "Finished Item Name"
   },
   {
    "fieldname": "column_break_3839p",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "yeild",
-   "fieldtype": "Float",
-   "label": "Yeild",
-   "read_only": 1
   },
   {
    "fieldname": "qty",
@@ -77,33 +53,32 @@
   {
    "fieldname": "rate",
    "fieldtype": "Float",
-   "label": "Rate",
-   "read_only": 1
+   "label": "Rate"
   },
   {
-   "allow_on_submit": 1,
    "fieldname": "amount",
    "fieldtype": "Float",
-   "label": "Amount",
-   "read_only": 1
-  },
-  {
-   "fieldname": "raw_qty",
-   "fieldtype": "Float",
-   "label": "Raw Quantity"
+   "label": "Amount"
   },
   {
    "fieldname": "batch_no",
    "fieldtype": "Link",
    "label": "Batch No",
    "options": "Batch"
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "label": "Warehouse",
+   "options": "Warehouse",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-02-13 11:22:55.434005",
+ "modified": "2026-04-08 17:12:22.358135",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "In Subcontracting Item s",

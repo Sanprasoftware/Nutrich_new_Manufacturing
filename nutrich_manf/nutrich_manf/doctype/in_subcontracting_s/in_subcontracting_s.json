@@ -11,49 +11,29 @@
   "supplier",
   "supplier_name",
   "department",
-  "batch_order_naming_series",
-  "out_subcontracting_id",
   "column_break_xtpp",
   "posting_date",
   "posting_time",
   "cost_center",
   "column_break_frre",
   "company",
-  "source_warehouse",
-  "target_warehouse",
-  "wip_warehuse",
-  "section_break_vblb",
-  "out_item_list",
+  "out_subcontracting_id",
   "subcontracting_items_section",
   "in_raw_material",
+  "section_break_clpt",
+  "total_raw_qty",
+  "column_break_ilrk",
+  "total_raw_amount",
   "section_break_xmnf",
   "finished_items",
   "section_break_dcoe",
-  "total_raw_qty",
   "column_break_sdit",
   "total_qty",
   "column_break_hgpp",
   "total_finished_amount",
-  "operation_cost_section",
-  "operation_cost",
-  "section_break_vnoz",
-  "total_operation_cost",
-  "column_break_xixl",
-  "total_manufacturing_cost",
-  "column_break_vsjp",
-  "total_output_amount",
-  "scrap_section",
-  "scrap",
-  "section_break_erel",
-  "total_scrap_qty",
-  "column_break_ckhw",
-  "total_scrap_amount",
-  "bifurcation_section",
-  "bifurcation",
   "totals_section",
   "total_weight",
   "column_break_humm",
-  "outstanding_amount",
   "total_amount",
   "rounded_total"
  ],
@@ -122,12 +102,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "batch_order_naming_series",
-   "fieldtype": "Select",
-   "label": "Batch Order Naming Series",
-   "options": "\nC/Cut/.FY./.#\nC/Peel/.FY./.#\nC/GRD/W/.FY./.#\nC/GRD/B/.FY./.#\nC/RP/S/.FY./.#\nC/RP/W/.FY./.#\nC/OP/.FY./.#\nC/SVR/.FY./.#\nC/OPGRD/W/.FY./.#\nC/OPGRD/S/.FY./.#"
-  },
-  {
    "default": "Now",
    "fieldname": "posting_time",
    "fieldtype": "Time",
@@ -140,40 +114,6 @@
    "label": "Cost Center",
    "options": "Cost Center",
    "reqd": 1
-  },
-  {
-   "fetch_from": "department.source_warehouse",
-   "fieldname": "source_warehouse",
-   "fieldtype": "Link",
-   "label": "Source Warehouse",
-   "options": "Warehouse",
-   "reqd": 1
-  },
-  {
-   "fetch_from": "department.target_warehouse",
-   "fieldname": "target_warehouse",
-   "fieldtype": "Link",
-   "label": "Target Warehouse",
-   "options": "Warehouse",
-   "reqd": 1
-  },
-  {
-   "fetch_from": "department.wip_warehouse",
-   "fieldname": "wip_warehuse",
-   "fieldtype": "Link",
-   "label": "WIP Warehuse",
-   "options": "Warehouse",
-   "reqd": 1
-  },
-  {
-   "fieldname": "section_break_vblb",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "out_item_list",
-   "fieldtype": "Table",
-   "label": "Out Item List",
-   "options": "Get Item List s"
   },
   {
    "fieldname": "subcontracting_items_section",
@@ -212,7 +152,7 @@
   {
    "fieldname": "total_qty",
    "fieldtype": "Float",
-   "label": "Total Qty"
+   "label": "Total Finish Qty"
   },
   {
    "fieldname": "column_break_hgpp",
@@ -222,84 +162,6 @@
    "fieldname": "total_finished_amount",
    "fieldtype": "Float",
    "label": "Total Finished Amount"
-  },
-  {
-   "fieldname": "operation_cost_section",
-   "fieldtype": "Section Break",
-   "label": "Operation Cost"
-  },
-  {
-   "fieldname": "operation_cost",
-   "fieldtype": "Table",
-   "label": "Operation Cost",
-   "options": "Operation Costs s"
-  },
-  {
-   "fieldname": "section_break_vnoz",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "total_operation_cost",
-   "fieldtype": "Float",
-   "label": "Total Operation Cost"
-  },
-  {
-   "fieldname": "column_break_xixl",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "total_manufacturing_cost",
-   "fieldtype": "Float",
-   "label": "Total Manufacturing Cost"
-  },
-  {
-   "fieldname": "column_break_vsjp",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "total_output_amount",
-   "fieldtype": "Float",
-   "label": "Total Output Amount"
-  },
-  {
-   "fieldname": "scrap_section",
-   "fieldtype": "Section Break",
-   "label": "Scrap"
-  },
-  {
-   "fieldname": "scrap",
-   "fieldtype": "Table",
-   "label": "Scrap",
-   "options": "Scrap Item s"
-  },
-  {
-   "fieldname": "section_break_erel",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "total_scrap_qty",
-   "fieldtype": "Float",
-   "label": "Total Scrap Qty"
-  },
-  {
-   "fieldname": "column_break_ckhw",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "total_scrap_amount",
-   "fieldtype": "Float",
-   "label": " Total Scrap Amount"
-  },
-  {
-   "fieldname": "bifurcation_section",
-   "fieldtype": "Section Break",
-   "label": "Bifurcation "
-  },
-  {
-   "fieldname": "bifurcation",
-   "fieldtype": "Table",
-   "label": "Bifurcation ",
-   "options": "Bifurcation Items s"
   },
   {
    "fieldname": "totals_section",
@@ -316,11 +178,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "outstanding_amount",
-   "fieldtype": "Currency",
-   "label": "Outstanding Amount"
-  },
-  {
    "fieldname": "total_amount",
    "fieldtype": "Currency",
    "label": "Total Amount"
@@ -335,13 +192,26 @@
    "fieldtype": "Link",
    "label": "Out Subcontracting Id",
    "options": "Out Subcontracting s"
+  },
+  {
+   "fieldname": "section_break_clpt",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_ilrk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_raw_amount",
+   "fieldtype": "Float",
+   "label": "Total Raw Amount"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-31 10:23:22.180596",
+ "modified": "2026-04-11 12:03:19.335029",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "In Subcontracting s",

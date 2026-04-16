@@ -7,6 +7,7 @@ from frappe.utils import today, add_months
 from frappe.desk.query_report import generate_report_result as get_report
 from frappe.utils import flt
 from frappe.model.mapper import get_mapped_doc
+from frappe import _
 
 
 class ProcessOrders(Document):
@@ -354,8 +355,7 @@ class ProcessOrders(Document):
 			self.per_completed = min((completed_qty / self.total_in_qty) * 100, 100)
 		else:
 			self.per_completed = 0
-	
-
+	 
 
 @frappe.whitelist()
 def make_batch_order(source_name, target_doc=None):
@@ -412,45 +412,111 @@ def make_batch_order(source_name, target_doc=None):
     )
 
 
+# @frappe.whitelist()
+# def make_out_subcontracting(source_name, target_doc=None):
+# 	def _postprocess(source, target):
+# 		target.process_order = source.name
+# 		if not target.posting_date:
+# 			target.posting_date = source.date
+
+# 		for row in target.items or []:
+# 			row.process_order_id = source.name
+
+# 	return get_mapped_doc(
+# 		"Process Order s",
+# 		source_name,
+# 		{
+# 			"Process Order s": {
+# 				"doctype": "Out Subcontracting s",
+# 				"field_map": {
+# 					"name": "process_order",
+# 					"date": "posting_date",
+# 				},
+# 			},
+# 			"Process Order raw": {
+# 				"doctype": "Out Subcontracting Item s",
+# 				"field_map": {
+# 					"item_code": "item",
+# 					"item_name": "item_name",
+# 					"qty": "quantity",
+# 					"yeild": "yield",
+# 					"uom": "uom",
+# 					"rate": "rate",
+# 					"amount": "amount",
+# 					"batch": "batch_no",
+# 					"warehouse": "source_warehouse",
+# 				},
+# 			},
+# 		},
+# 		target_doc,
+# 		postprocess=_postprocess,
+# 	)
+
 @frappe.whitelist()
 def make_out_subcontracting(source_name, target_doc=None):
-	def _postprocess(source, target):
-		target.process_order = source.name
-		if not target.posting_date:
-			target.posting_date = source.date
+    # Get total already subcontracted quantity
+    total_subcontracted = frappe.db.sql("""
+        SELECT COALESCE(SUM(total_quantity), 0)
+        FROM `tabOut Subcontracting s`
+        WHERE process_order = %s AND docstatus != 2
+    """, (source_name,))[0][0]
+    
+    # Get Process Order total raw quantity
+    process_order = frappe.get_doc("Process Order s", source_name)
+    remaining_qty = flt(process_order.total_raw_qty) - flt(total_subcontracted)
+    
+    if remaining_qty <= 0:
+        frappe.throw(_("All quantity has already been subcontracted. No remaining quantity available."))
 
-		for row in target.items or []:
-			row.process_order_id = source.name
+    def _postprocess(source, target):
+        target.process_order = source.name
+        if not target.posting_date:
+            target.posting_date = source.date
+        
+        # Set the remaining quantity as the default total
+        target.total_quantity = remaining_qty
+        
+        # Calculate ratio for distributing qty to items
+        original_total = flt(source.total_raw_qty)
+        ratio = remaining_qty / original_total if original_total else 0
 
-	return get_mapped_doc(
-		"Process Order s",
-		source_name,
-		{
-			"Process Order s": {
-				"doctype": "Out Subcontracting s",
-				"field_map": {
-					"name": "process_order",
-					"date": "posting_date",
-				},
-			},
-			"Process Order raw": {
-				"doctype": "Out Subcontracting Item s",
-				"field_map": {
-					"item_code": "item",
-					"item_name": "item_name",
-					"qty": "quantity",
-					"yeild": "yield",
-					"uom": "uom",
-					"rate": "rate",
-					"amount": "amount",
-					"batch": "batch_no",
-					"warehouse": "source_warehouse",
-				},
-			},
-		},
-		target_doc,
-		postprocess=_postprocess,
-	)
+        for row in target.items or []:
+            row.process_order_id = source.name
+            # Adjust quantity based on remaining ratio
+            original_qty = flt(row.quantity)
+            row.quantity = original_qty * ratio
+            # Recalculate amount based on new quantity
+            row.amount = flt(row.quantity) * flt(row.rate)
+
+    return get_mapped_doc(
+        "Process Order s",
+        source_name,
+        {
+            "Process Order s": {
+                "doctype": "Out Subcontracting s",
+                "field_map": {
+                    "name": "process_order",
+                    "date": "posting_date",
+                },
+            },
+            "Process Order raw": {
+                "doctype": "Out Subcontracting Item s",
+                "field_map": {
+                    "item_code": "item",
+                    "item_name": "item_name",
+                    "qty": "quantity",
+                    "yeild": "yield",
+                    "uom": "uom",
+                    "rate": "rate",
+                    "amount": "amount",
+                    "batch": "batch_no",
+                    "warehouse": "source_warehouse",
+                },
+            },
+        },
+        target_doc,
+        postprocess=_postprocess,
+    )
 
 
 def get_completed_qty_from_batch_orders(process_order_name):

@@ -17,8 +17,6 @@
   "cost_center",
   "column_break_bhva",
   "company",
-  "target_warehouse",
-  "source_warehouse",
   "subcontracting_items_section",
   "items",
   "taxes_and_charges_section",
@@ -135,20 +133,6 @@
    "fieldtype": "Link",
    "label": "Company",
    "options": "Company",
-   "reqd": 1
-  },
-  {
-   "fieldname": "target_warehouse",
-   "fieldtype": "Link",
-   "label": "Target Warehouse",
-   "options": "Warehouse",
-   "reqd": 1
-  },
-  {
-   "fieldname": "source_warehouse",
-   "fieldtype": "Link",
-   "label": "Source Warehouse",
-   "options": "Warehouse",
    "reqd": 1
   },
   {
@@ -370,9 +354,13 @@
   {
    "link_doctype": "Stock Entry",
    "link_fieldname": "custom_out_subcontracting_id"
+  },
+  {
+   "link_doctype": "In Subcontracting s",
+   "link_fieldname": "out_subcontracting_id"
   }
  ],
- "modified": "2026-03-30 10:34:42.026975",
+ "modified": "2026-04-11 11:58:25.258783",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "Out Subcontracting s",

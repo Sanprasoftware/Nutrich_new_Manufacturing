@@ -141,7 +141,7 @@ override_doctype_class = {
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
+# doc_events = { 
 # 	"*": {
 # 		"on_update": "method",
 # 		"on_cancel": "method",

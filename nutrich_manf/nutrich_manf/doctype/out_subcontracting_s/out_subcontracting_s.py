@@ -4,13 +4,17 @@
 import frappe
 from frappe.utils import flt
 from frappe.model.document import Document
+from frappe import _
+
 
 
 class OutSubcontractings(Document): 
 	def validate(self):
 		self._calculate_totals()
+
 	def on_submit(self):
 		self.create_stock_entry()
+
 
 	def _calculate_totals(self):
 		total_qty = 0.0
@@ -20,8 +24,11 @@ class OutSubcontractings(Document):
 			qty = flt(row.quantity) 
 			rate = flt(row.rate)
 
-			if not row.amount and (qty or rate):
+			# if not row.amount and (qty or rate):
+			# 	row.amount = flt(qty * rate)
+			if row.rate and row.rate:
 				row.amount = flt(qty * rate)
+
 
 			total_qty += qty
 			total_amount += flt(row.amount)
@@ -88,8 +95,47 @@ class OutSubcontractings(Document):
 			"wip_warehuse": department_doc.wip_warehouse,
 		}
 
+	# @frappe.whitelist()
+	# def create_in_subcontracting(self):
+
+	# 	insub = frappe.new_doc("In Subcontracting s")
+	# 	insub.supplier = self.supplier
+	# 	insub.supplier_name = self.supplier_name
+	# 	insub.posting_date = self.posting_date
+	# 	insub.posting_time = self.posting_time
+	# 	insub.company = self.company
+	# 	insub.cost_center = self.cost_center
+	# 	insub.out_subcontracting_id = self.name
+
+	# 	for row in self.items:
+	# 		insub.append("in_raw_material", {
+	# 			"referance_challan": self.name,
+	# 			"item": row.item,
+	# 			"item_name": row.item_name,
+	# 			"rate": row.rate,
+	# 			"quantity": row.quantity,
+	# 			"uom": row.uom,
+	# 			"amount": row.amount,
+	# 			"batch_no": row.batch_no,
+	# 			"warehouse": row.source_warehouse
+	# 		})
+
+	# 	return insub
+
 	@frappe.whitelist()
 	def create_in_subcontracting(self):
+		# Get total already received quantity from In Subcontracting total_raw_qty field
+		total_received = frappe.db.sql("""
+			SELECT COALESCE(SUM(total_raw_qty), 0)
+			FROM `tabIn Subcontracting s`
+			WHERE out_subcontracting_id = %s AND docstatus != 2
+		""", (self.name,))[0][0]
+		
+		# Calculate remaining quantity based on Out Subcontracting total_quantity
+		remaining_qty = flt(self.total_quantity) - flt(total_received)
+		
+		if remaining_qty <= 0:
+			frappe.throw(_("All quantity has already been received. No remaining quantity available."))
 
 		insub = frappe.new_doc("In Subcontracting s")
 		insub.supplier = self.supplier
@@ -98,27 +144,28 @@ class OutSubcontractings(Document):
 		insub.posting_time = self.posting_time
 		insub.company = self.company
 		insub.cost_center = self.cost_center
-		insub.target_warehouse = self.target_warehouse
-		insub.source_warehouse = self.source_warehouse
 		insub.out_subcontracting_id = self.name
+		insub.total_raw_qty = remaining_qty  # Set remaining qty
+		insub.total_raw_amount = self.outstanding_amount  # Set outstanding amount from Out Subcontracting
+
+		# Calculate ratio for distributing qty to items
+		original_total = flt(self.total_quantity)
+		ratio = remaining_qty / original_total if original_total else 0
 
 		for row in self.items:
+			original_qty = flt(row.quantity)
+			adjusted_qty = original_qty * ratio
+			
 			insub.append("in_raw_material", {
-				"referance_challan": insub.name,
+				"referance_challan": self.name,
 				"item": row.item,
-				"yeild": row.get("yield"),
+				"item_name": row.item_name,
 				"rate": row.rate,
+				"quantity": adjusted_qty,
 				"uom": row.uom,
-				"quantity": row.quantity,
-				# "production_done_quantity": row.quantity,
-				# "manufacturing_rate": row.rate,
-				# "basic_value": row.amount,
-				# "sale_value": row.amount,
-				# "operation_cost": row.operation_cost,
-				# "valuation_rate": row.valuation_rate,
-				# "total_cost": row.total_cost,
-				# "batch_no": row.batch_no,
-				# "warehouse": row.source_warehouse
+				"amount": flt(adjusted_qty) * flt(row.rate),
+				"batch_no": row.batch_no,
+				"warehouse": row.source_warehouse
 			})
 
 		return insub

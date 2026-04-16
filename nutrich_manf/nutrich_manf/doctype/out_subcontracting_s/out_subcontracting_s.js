@@ -3,7 +3,7 @@
 
 frappe.ui.form.on("Out Subcontracting s", {
 	refresh(frm) {
-		  if (!frm.is_new()) {
+		  if ((!frm.is_new()) && (frm.doc.docstatus === 1)) {
 
             frm.add_custom_button("In Subcontracting", function() {
 

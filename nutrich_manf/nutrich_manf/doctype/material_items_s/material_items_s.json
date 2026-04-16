@@ -8,25 +8,17 @@
  "engine": "InnoDB",
  "field_order": [
   "referance_challan",
-  "item",
-  "yeild",
   "rate",
-  "uom",
+  "production_done_quantity",
   "column_break_q2a4q",
-  "item_name",
+  "item",
   "quantity",
   "amount",
-  "production_done_quantity",
-  "column_break_ycqms",
-  "process_order_id",
-  "manufacturing_rate",
-  "basic_value",
-  "sale_value",
-  "column_break_48x2h",
-  "operation_cost",
-  "valuation_rate",
-  "total_cost",
   "batch_no",
+  "column_break_48x2h",
+  "item_name",
+  "uom",
+  "total_cost",
   "warehouse"
  ],
  "fields": [
@@ -41,17 +33,7 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Item",
-   "options": "Item",
-   "read_only": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "yeild",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "label": "Yeild",
-   "precision": "2",
-   "read_only": 1
+   "options": "Item"
   },
   {
    "default": "0",
@@ -76,8 +58,7 @@
    "fetch_from": "item.item_name",
    "fieldname": "item_name",
    "fieldtype": "Data",
-   "label": "Item Name",
-   "read_only": 1
+   "label": "Item Name"
   },
   {
    "default": "0",
@@ -92,8 +73,7 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Amount",
-   "precision": "2",
-   "read_only": 1
+   "precision": "2"
   },
   {
    "allow_on_submit": 1,
@@ -104,56 +84,8 @@
    "read_only": 1
   },
   {
-   "fieldname": "column_break_ycqms",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "process_order_id",
-   "fieldtype": "Link",
-   "label": "Process Order Id",
-   "options": "Process Order s",
-   "read_only": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "manufacturing_rate",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "label": "Manufacturing Rate",
-   "precision": "2"
-  },
-  {
-   "default": "0",
-   "fieldname": "basic_value",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "label": "Basic Value",
-   "precision": "2"
-  },
-  {
-   "default": "0",
-   "fieldname": "sale_value",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "label": "Sale Value",
-   "precision": "2"
-  },
-  {
    "fieldname": "column_break_48x2h",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "operation_cost",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "label": "Operation Cost",
-   "precision": "2"
-  },
-  {
-   "fieldname": "valuation_rate",
-   "fieldtype": "Float",
-   "label": "Valuation Rate",
-   "precision": "2"
   },
   {
    "fieldname": "total_cost",
@@ -180,7 +112,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-02-13 11:21:42.415486",
+ "modified": "2026-04-08 17:24:22.418982",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "Material Items s",
