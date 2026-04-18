@@ -60,6 +60,11 @@ class BatchOrders(Document):
 	def on_trash(self):
 		self.sync_process_order_progress()
 
+	
+	def validate_difference_amount(self):
+		if self.difference_amount != self.total_cost or self.difference_amount !=0:
+			frappe.throw("Difference Amount must be equal to Total Cost or Zero")
+
 	def sync_process_order_progress(self):
 		if not self.process_order:
 			return
