@@ -93,6 +93,7 @@
    "in_list_view": 1,
    "label": "Process Order Qty",
    "precision": "2",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -308,7 +309,7 @@
    "fieldname": "manufacturing_naming_series",
    "fieldtype": "Select",
    "label": "Manufacturing Naming Series",
-   "options": "\nMTR/.FY./.#\nMAT-STE-.FY.-\nC/CUT/.FY./.##.\nC/PEELING/.FY./.##.\nC/WGRD/.FY./.###.\nC/SGRD/.FY./.###.\nC/RPS/.FY./.##.\nC/SRPS/.FY./.##.\nC/WRPS/.FY./.##.\nC/OPCUT/.FY./.##.\nC/OPGRD/.FY./.##.\nC/OPPEEL/.FY./.##.\nMAT-STE-.YYYY.-\nC/CUT/23-24/.##.\nC/PEELING/23-24/.##.\nC/WGRD/23-24/.###.\nC/SGRD/23-24/.###.\nC/RPS/23-24/.##.\nC/SRPS/23-24/.##.\nC/WRPS/23-24/.##.\nC/OPCUT/23-24/.##.\nC/OPGRD/23-24/.##.\nC/OPPEEL/23-24/.##.",
+   "options": "\nMTR/.FY./.#\nMAT-STE-.FY.-\nC/CUT/.FY./.##.\nC/PEELING/.FY./.##.\nC/WGRD/.FY./.###.\nC/SGRD/.FY./.###.\nC/RPS/.FY./.##.\nC/SRPS/.FY./.##.\nC/WRPS/.FY./.##.\nC/OPCUT/.FY./.##.\nC/OPGRD/.FY./.##.\nC/OPPEEL/.FY./.##.\nMAT-STE-.YYYY.-\nC/CUT/23-24/.##.\nC/PEELING/23-24/.##.\nC/WGRD/23-24/.###.\nC/SGRD/23-24/.###.\nC/RPS/23-24/.##.\nC/SRPS/23-24/.##.\nC/WRPS/23-24/.##.\nC/OPCUT/23-24/.##.\nC/OPGRD/23-24/.##.\nC/OPPEEL/23-24/.##.\nP-C/DCP/.FY./.#.",
    "reqd": 1
   },
   {
@@ -331,7 +332,7 @@
    "link_fieldname": "custom_batch_order_id"
   }
  ],
- "modified": "2026-01-30 15:55:11.556060",
+ "modified": "2026-04-21 15:28:12.124072",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "Batch Order s",
