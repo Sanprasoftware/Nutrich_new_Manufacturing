@@ -24,6 +24,45 @@ frappe.ui.form.on("Batch Order s", {
         frm.add_custom_button("Create Stock Entry", () => {
             frm.make_methods["Stock Entry"]();
         });
+    },
+    onload(frm) {
+      frm.set_query("batch", "process_definition_raw", function(doc, cdt, cdn) {
+        const row = locals[cdt][cdn];
+        if (!row.item_code) {
+          return { filters: { name: "" } }; // no item selected
+        }
+        return {
+          filters: {
+            item: row.item_code
+          }
+        };
+      });   
+
+      frm.set_query("batch", "process_definition_finish", function(doc, cdt, cdn) {
+        const row = locals[cdt][cdn];
+        if (!row.item_code) {
+          return { filters: { name: "" } }; // no item selected
+        }
+        return {    
+          filters: {
+            item: row.item_code
+          }
+        };
+      });
+
+        frm.set_query("batch", "process_definition_scrap", function(doc, cdt, cdn) {
+        const row = locals[cdt][cdn];
+        if (!row.item_code) {
+          return { filters: { name: "" } }; // no item selected
+        }   
+        return {
+          filters: {
+            item: row.item_code
+          }
+        };
+      });
+      
+
     }
 });
 
