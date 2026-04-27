@@ -17,7 +17,7 @@ frappe.ui.form.on("Out Subcontracting s", {
                             frappe.set_route("Form", doc.doctype, doc.name);  
                         }
                     }    
-                });
+                }); 
  
             });
 		}

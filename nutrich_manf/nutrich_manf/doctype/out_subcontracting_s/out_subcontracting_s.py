@@ -11,6 +11,7 @@ from frappe import _
 class OutSubcontractings(Document): 
 	def validate(self):
 		self._calculate_totals()
+		self.set_per_received()
 
 	def on_submit(self):
 		self.create_stock_entry()
@@ -68,6 +69,13 @@ class OutSubcontractings(Document):
 		stock_entry.save()				
 		stock_entry.submit()
 
+	def set_per_received(self):
+		received_qty = get_received_qty_from_in_subcontracting(self.name)
+		if self.total_quantity:
+			self.per_received = min((received_qty / self.total_quantity) * 100, 100)
+		else:
+			self.per_received = 0
+
 	def _get_department_details_for_in_subcontracting(self):
 		department_name = None
 
@@ -95,7 +103,7 @@ class OutSubcontractings(Document):
 			"wip_warehuse": department_doc.wip_warehouse,
 		}
 
-	# @frappe.whitelist()
+	# @frappe.whitelist() 
 	# def create_in_subcontracting(self):
 
 	# 	insub = frappe.new_doc("In Subcontracting s")
@@ -169,3 +177,46 @@ class OutSubcontractings(Document):
 			})
 
 		return insub
+
+
+def get_received_qty_from_in_subcontracting(out_subcontracting_name):
+	if not out_subcontracting_name:
+		return 0
+
+	result = frappe.db.sql(
+		"""
+		SELECT COALESCE(SUM(total_raw_qty), 0)
+		FROM `tabIn Subcontracting s`
+		WHERE docstatus < 2 AND out_subcontracting_id = %s
+		""",
+		(out_subcontracting_name,),
+	)
+	return flt(result[0][0]) if result else 0
+
+
+def update_out_subcontracting_progress(out_subcontracting_name):
+	if not out_subcontracting_name:
+		return
+
+	out_subcontracting = frappe.db.get_value(
+		"Out Subcontracting s",
+		out_subcontracting_name,
+		["name", "total_quantity"],
+		as_dict=True,
+	)
+	if not out_subcontracting:
+		return
+
+	received_qty = get_received_qty_from_in_subcontracting(out_subcontracting_name)
+	if out_subcontracting.total_quantity:
+		per_received = min((received_qty / out_subcontracting.total_quantity) * 100, 100)
+	else:
+		per_received = 0
+
+	frappe.db.set_value(
+		"Out Subcontracting s",
+		out_subcontracting_name,
+		"per_received",
+		flt(per_received, 2),
+		update_modified=False,
+	)

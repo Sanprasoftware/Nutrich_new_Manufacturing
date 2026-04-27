@@ -3,6 +3,9 @@
 
 import frappe
 from frappe.model.document import Document
+from nutrich_manf.nutrich_manf.doctype.out_subcontracting_s.out_subcontracting_s import (
+	update_out_subcontracting_progress,
+)
 
 
 class InSubcontractings(Document):
@@ -11,6 +14,16 @@ class InSubcontractings(Document):
 	
 	def on_submit(self):
 		self.create_stock_entry()
+		self.sync_out_subcontracting_progress()
+
+	def on_update(self):
+		self.sync_out_subcontracting_progress()
+
+	def on_cancel(self):
+		self.sync_out_subcontracting_progress()
+
+	def on_trash(self):
+		self.sync_out_subcontracting_progress()
 
 	def calculate_totals(self):
 		total_qty = 0.0
@@ -74,3 +87,7 @@ class InSubcontractings(Document):
 				"batch_no": row.batch_no,
 			})
 		stock_entry.save()
+
+	def sync_out_subcontracting_progress(self):
+		if self.out_subcontracting_id:
+			update_out_subcontracting_progress(self.out_subcontracting_id)

@@ -24,6 +24,7 @@
   "sales_taxes_and_charges",
   "total_section",
   "total_quantity",
+  "per_received",
   "column_break_benq",
   "outstanding_amount",
   "total_amount",
@@ -173,6 +174,14 @@
    "fieldname": "total_quantity",
    "fieldtype": "Float",
    "label": "Total Quantity"
+  },
+  {
+   "fieldname": "per_received",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "% Received",
+   "precision": "2",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_benq",

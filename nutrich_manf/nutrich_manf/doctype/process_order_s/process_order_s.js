@@ -75,7 +75,7 @@ frappe.ui.form.on("Process Order s", {
           return { filters: { name: "" } }; // no item selected
         }
         return {    
-          filters: {
+          filters: { 
             item: row.item_code
           }
         };
