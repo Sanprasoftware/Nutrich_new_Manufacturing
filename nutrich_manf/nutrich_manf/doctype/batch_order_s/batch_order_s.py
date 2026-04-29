@@ -341,7 +341,8 @@ class BatchOrders(Document):
 	@frappe.whitelist()
 	def calculate_total_out_qty_amount(self):
 		self.total_in_qty = self.total_raw_qty
-		self.total_in_amount = self.total_raw_amount + self.total_cost
+		# self.total_in_amount = self.total_raw_amount + self.total_cost
+		self.total_in_amount = self.total_raw_amount  # Changed By Devika Mam on 29-04-2026
 
 		self.total_out_qty = self.total_finish_qty + self.total_scrap_qty
 		self.total_out_material_amount = self.total_finish_amount + self.total_scrap_amount
