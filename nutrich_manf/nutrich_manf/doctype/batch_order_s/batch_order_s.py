@@ -103,7 +103,7 @@ class BatchOrders(Document):
 	# ow.qty = self.quantity * row.yeild / 100
 	@frappe.whitelist()
 	def update_qty_button(self):
-		if self.quantity and self.process_definition_raw:
+		if self.quantity > 0 and self.process_definition_raw:
 			for row in self.process_definition_raw:
 				row.qty = self.quantity * row.yeild / 100 
 			self.process_defination_raw_amount()
@@ -133,6 +133,7 @@ class BatchOrders(Document):
 		for row in self.process_definition_raw: ##process_definition_raw
 			if row.qty and row.rate:	
 				row.amount = row.qty * row.rate
+				# row.amount = flt(row.qty) * flt(row.rate)
 			
 			manuf_rate = frappe.get_value("Manufacturing Rate Chart s", {"item_code": row.item_code, "process_type": self.process_type}, "rate") or 0.00
 			if self.process_type and row.item_code:
@@ -193,7 +194,7 @@ class BatchOrders(Document):
 				# row.qty = (row.yeild / 100) * (self.total_raw_qty or 0)
 				row.total_cost = (row.qty or 0) * val_rate
 
-			if row.item_code and row.qty:
+			if row.item_code and row.qty and self.quantity > 0:
 				row.yeild = row.qty / self.quantity * 100
 
 			if self.process_type and row.item_code:
@@ -235,6 +236,8 @@ class BatchOrders(Document):
 
 			# final row amount
 			row.amount = (row.qty or 0) * (row.valuation_rate or 0)
+			# row.amount = flt(row.qty) * flt(row.valuation_rate)
+			# row.amount = round(flt(row.qty) * flt(row.valuation_rate))
 
 			total_finish_amount += (row.amount or 0)
 
@@ -278,7 +281,7 @@ class BatchOrders(Document):
 				# row.qty = (row.yeild / 100) * (self.total_raw_qty or 0)
 				row.total_cost = (row.qty or 0) * val_rate
 			
-			if row.item_code and row.qty:
+			if row.item_code and row.qty and self.quantity > 0:
 				row.yeild = row.qty / self.quantity * 100
 
 			if self.process_type and row.item_code:

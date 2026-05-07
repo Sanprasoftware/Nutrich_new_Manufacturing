@@ -178,7 +178,7 @@ class ProcessDefinitions(Document):
 
 			if total_qty_rate:
 				share = qty_rate / total_qty_rate
-			else:
+			else: 
 				share = 0
 
 			row.share_percentage = share * 100
