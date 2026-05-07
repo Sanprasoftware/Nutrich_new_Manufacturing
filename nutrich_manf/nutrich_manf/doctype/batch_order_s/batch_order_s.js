@@ -8,7 +8,7 @@ frappe.ui.form.on("Batch Order s", {
                 frm.refresh_fields();
             }
         })
-    }, 
+    },  
     refresh(frm) {
         if (frm.is_new()) return;
 

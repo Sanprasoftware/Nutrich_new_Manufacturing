@@ -25,7 +25,7 @@ from erpnext.manufacturing.doctype.bom.bom import (
 	add_additional_cost,
 	get_bom_items_as_dict,
 	get_op_cost_from_sub_assemblies,
-	get_scrap_items_from_sub_assemblies,
+	# get_scrap_items_from_sub_assemblies,
 	validate_bom_no,
 )
 from erpnext.setup.doctype.brand.brand import get_brand_defaults

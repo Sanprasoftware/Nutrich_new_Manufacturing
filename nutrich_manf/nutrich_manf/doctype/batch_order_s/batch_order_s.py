@@ -350,7 +350,7 @@ class BatchOrders(Document):
 		self.difference_quantity = self.total_raw_qty - self.total_out_qty
 		# self.difference_amount = self.total_raw_amount + self.total_cost - self.total_out_material_amount
 		self.difference_amount = self.total_finish_amount - self.total_raw_amount 
-
+ 
 
 
 @frappe.whitelist()
