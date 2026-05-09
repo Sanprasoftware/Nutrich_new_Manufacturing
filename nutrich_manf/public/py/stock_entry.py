@@ -128,8 +128,15 @@ def calculate_difference(doc,method=None):
     diff_qty1 = 0
     diff_qty2 = 0
     for row in doc.items:
-        if not row.is_finished_item and not row.is_scrap_item:
+        if not row.is_finished_item and not row.is_legacy_scrap_item:
             diff_qty1 += row.qty
-        if row.is_finished_item == 1 or row.is_scrap_item == 1:
+        if row.is_finished_item == 1 or row.is_legacy_scrap_item == 1:
             diff_qty2 += row.qty 
     doc.custom_difference_qty_nutrich = diff_qty1 - diff_qty2
+
+
+@frappe.whitelist()
+def set_cost_center(doc, method=None):
+    if doc.cost_center:
+        for row in doc.items:
+            row.cost_center = doc.cost_center

@@ -368,7 +368,7 @@ def make_stock_entry(source_name, target_doc=None):
 
 		# RAW MATERIALS → Source warehouse
 		for d in target.items:
-			if not d.is_finished_item and not d.is_scrap_item:
+			if not d.is_finished_item and not d.is_legacy_scrap_item:
 				d.s_warehouse = d.warehouse
 				d.t_warehouse = None
 				d.transfer_qty = d.qty
@@ -388,7 +388,7 @@ def make_stock_entry(source_name, target_doc=None):
 
 		# SCRAP ITEMS
 		for d in target.items:
-			if d.is_scrap_item:
+			if d.is_legacy_scrap_item:
 				d.t_warehouse = d.warehouse
 				d.s_warehouse = None
 				d.transfer_qty = d.qty
@@ -449,7 +449,7 @@ def make_stock_entry(source_name, target_doc=None):
 					"batch": "batch_no",
 					# "basic_rate": "rate",
 				},
-				"postprocess": lambda src, tgt, src_parent: setattr(tgt, "is_scrap_item", 1),
+				"postprocess": lambda src, tgt, src_parent: setattr(tgt, "is_legacy_scrap_item", 1),
 			},
 
 			# ---------------- ADDITIONAL COST ----------------

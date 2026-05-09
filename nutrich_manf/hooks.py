@@ -150,7 +150,10 @@ override_doctype_class = {
 # }
 doc_events = {
     "Stock Entry": {
-        "before_save": "nutrich_manf.public.py.stock_entry.calculate_difference",
+        "before_save": [
+            "nutrich_manf.public.py.stock_entry.calculate_difference",
+            "nutrich_manf.public.py.stock_entry.set_cost_center",
+        ]
     }
 }
 
