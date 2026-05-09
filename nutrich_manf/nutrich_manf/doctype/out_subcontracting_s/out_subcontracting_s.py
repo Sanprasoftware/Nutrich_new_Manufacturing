@@ -53,6 +53,7 @@ class OutSubcontractings(Document):
 		stock_entry.posting_date = self.posting_date
 		stock_entry.posting_time = self.posting_time
 		stock_entry.custom_out_subcontracting_id = self.name
+		stock_entry.cost_center = self.cost_center
 		# stock_entry.from_warehouse = self.from_warehouse
 		# stock_entry.to_warehouse = self.to_warehouse
 		for item in self.items:
