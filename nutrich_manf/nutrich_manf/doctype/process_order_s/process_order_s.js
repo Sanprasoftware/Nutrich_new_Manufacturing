@@ -40,7 +40,7 @@ frappe.ui.form.on("Process Order s", {
         };
         frm.add_custom_button("Gate Pass", () => {
             frm.make_methods["Gate Pass s"]();
-        }, __("Create"));
+        }, __("Create")); 
 
         
         // Create Out Subcontracting Button + Connection "+" Code
@@ -56,44 +56,121 @@ frappe.ui.form.on("Process Order s", {
         }, __("Create"));
     },
     
-    onload(frm) {
-      frm.set_query("batch", "process_definition_raw", function(doc, cdt, cdn) {
-        const row = locals[cdt][cdn];
-        if (!row.item_code) {
-          return { filters: { name: "" } }; // no item selected
-        }
-        return {
-          filters: {
-            item: row.item_code
-          }
-        };
-      });   
+    // onload(frm) {
+    //   frm.set_query("batch", "process_definition_raw", function(doc, cdt, cdn) {
+    //     const row = locals[cdt][cdn];
+    //     if (!row.item_code) {
+    //       return { filters: { name: "" } }; // no item selected
+    //     }
+    //     return {
+    //       filters: {
+    //         item: row.item_code
+    //       }
+    //     };
+    //   });   
 
-      frm.set_query("batch", "process_definition_finish", function(doc, cdt, cdn) {
-        const row = locals[cdt][cdn];
-        if (!row.item_code) {
-          return { filters: { name: "" } }; // no item selected
-        }
-        return {    
-          filters: { 
-            item: row.item_code
-          }
-        };
-      });
+    //   frm.set_query("batch", "process_definition_finish", function(doc, cdt, cdn) {
+    //     const row = locals[cdt][cdn];
+    //     if (!row.item_code) {
+    //       return { filters: { name: "" } }; // no item selected
+    //     }
+    //     return {    
+    //       filters: { 
+    //         item: row.item_code
+    //       }
+    //     };
+    //   });
 
-        frm.set_query("batch", "process_definition_scrap", function(doc, cdt, cdn) {
-        const row = locals[cdt][cdn];
-        if (!row.item_code) {
-          return { filters: { name: "" } }; // no item selected
-        }   
-        return {
-          filters: {
-            item: row.item_code
-          }
-        };
-      });
+    //     frm.set_query("batch", "process_definition_scrap", function(doc, cdt, cdn) {
+    //     const row = locals[cdt][cdn];
+    //     if (!row.item_code) {
+    //       return { filters: { name: "" } }; // no item selected
+    //     }   
+    //     return {
+    //       filters: {
+    //         item: row.item_code
+    //       }
+    //     };
+    //   });
       
 
+    // }
+    onload(frm) {
+        //   frm.set_query("batch", "process_definition_raw", function(doc, cdt, cdn) {
+        //     const row = locals[cdt][cdn];
+        //     if (!row.item_code) {
+        //       return { filters: { name: "" } }; // no item selected
+        //     }
+        //     return {
+        //       filters: {
+        //         item: row.item_code
+        //       }
+        //     };
+        //   }); 
+        
+        frm.set_query("batch", "process_definition_raw", function(doc, cdt, cdn) {
+            let row = locals[cdt][cdn];
+
+            return {
+                query: "erpnext.controllers.queries.get_batch_no",
+                filters: {
+                    item_code: row.item_code,
+                    warehouse: row.warehouse,
+                    posting_date: doc.date
+                }
+            };
+        });
+
+        // frm.set_query("batch", "process_definition_finish", function(doc, cdt, cdn) {
+        //     const row = locals[cdt][cdn];
+        //     if (!row.item_code) {
+        //       return { filters: { name: "" } }; // no item selected
+        //     }
+        //     return {    
+        //       filters: {
+        //         item: row.item_code
+        //       }
+        //     };
+        // });
+
+        frm.set_query("batch", "process_definition_finish", function(doc, cdt, cdn) {
+            let row = locals[cdt][cdn];
+
+            return {
+                query: "erpnext.controllers.queries.get_batch_no",
+                filters: {
+                    item_code: row.item_code,
+                    warehouse: row.warehouse,
+                    posting_date: doc.date
+                }
+            };
+        });
+
+        // frm.set_query("batch", "process_definition_scrap", function(doc, cdt, cdn) {
+        //     const row = locals[cdt][cdn];
+        //     if (!row.item_code) {
+        //     return { filters: { name: "" } }; // no item selected
+        //     }   
+        //     return {
+        //     filters: {
+        //         item: row.item_code
+        //     }
+        //     };
+        // });
+           
+        frm.set_query("batch", "process_definition_scrap", function(doc, cdt, cdn) {
+            let row = locals[cdt][cdn];
+
+            return {
+                query: "erpnext.controllers.queries.get_batch_no",
+                filters: {
+                    item_code: row.item_code,
+                    warehouse: row.warehouse,
+                    posting_date: doc.date
+                }
+            };
+        });
+      
     }
 });
 

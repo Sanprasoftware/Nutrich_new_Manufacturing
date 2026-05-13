@@ -39,6 +39,13 @@ class ProcessOrders(Document):
 			has_batch = frappe.get_cached_value("Item", row.item_code, "has_batch_no")
 			if has_batch and not row.batch:
 				missing.append(f"Finish row {idx}: Item {row.item_code}")
+		
+		for idx, row in enumerate(self.process_definition_scrap or [], start=1):
+			if not row.item_code:
+				continue
+			has_batch = frappe.get_cached_value("Item", row.item_code, "has_batch_no")
+			if has_batch and not row.batch: 
+				missing.append(f"Scrap row {idx}: Item {row.item_code}")
 
 		if missing:
 			frappe.throw(
@@ -75,30 +82,48 @@ class ProcessOrders(Document):
 	def process_defination_raw_amount(self):
 
 		total_qty = 0
-		total_amount = 0 
+		total_amount = 0  
 
 		for row in self.process_definition_raw: ##process_definition_raw
-			if row.item_code and row.warehouse:
-				val_rate = frappe.get_value("Bin", {"item_code": row.item_code, "warehouse": row.warehouse}, "valuation_rate") or 0.00
-				row.rate = val_rate
-
 			if row.qty and row.rate:	
-				# row.amount = row.qty * row.rate
+				row.amount = row.qty * row.rate
 				# row.amount = flt(row.qty) * flt(row.rate)
-				row.amount = flt(row.qty) * flt(row.rate, row.precision("rate"))
-
 			
 			manuf_rate = frappe.get_value("Manufacturing Rate Chart s", {"item_code": row.item_code, "process_type": self.process_type}, "rate") or 0.00
 			if self.process_type and row.item_code:
 				# frappe.throw(str(manuf_rate))
 				row.manufacturing_rate  =  manuf_rate
 			
+			# if row.item_code and row.warehouse:
+			# 	val_rate = frappe.get_value("Bin", {"item_code": row.item_code, "warehouse": row.warehouse}, "valuation_rate") or 0.00
+			# 	row.rate = val_rate
+			if row.item_code and row.warehouse:
+				val_rate = 0.00
+				if row.batch:
+					val_rate = frappe.get_value(
+						"Stock Ledger Entry",
+						{"item_code": row.item_code, "warehouse": row.warehouse, "batch_no": row.batch, "is_cancelled": 0},
+						"valuation_rate",
+						order_by="posting_date desc, posting_time desc, creation desc",
+					) or 0.00
+					if not val_rate:
+						batch_ref = frappe.db.get_value("Batch", row.batch, ["reference_doctype", "reference_name"], as_dict=True)
+						if batch_ref and batch_ref.reference_doctype == "Stock Reconciliation":
+							val_rate = frappe.get_value(
+								"Stock Reconciliation Item",
+								{"parent": batch_ref.reference_name, "item_code": row.item_code, "warehouse": row.warehouse, "batch_no": row.batch},
+								"valuation_rate",
+							) or 0.00
+				if not val_rate:
+					val_rate = frappe.get_value("Bin", {"item_code": row.item_code, "warehouse": row.warehouse}, "valuation_rate") or 0.00
+				row.rate = val_rate
 
 			total_qty += (row.qty or 0)
 			total_amount += (row.amount or 0)
 
 		self.total_raw_qty = total_qty
 		self.total_raw_amount = total_amount
+ 
  
 	
 	# Process Definition Cost Child Table Calculations------------------------------------------------------------------------------------
@@ -489,8 +514,8 @@ def make_out_subcontracting(source_name, target_doc=None):
             # Recalculate amount based on new quantity
             row.amount = flt(row.quantity) * flt(row.rate)
 
-    return get_mapped_doc(
-        "Process Order s",
+    return get_mapped_doc( 
+        "Process Order s", 
         source_name,
         {
             "Process Order s": {

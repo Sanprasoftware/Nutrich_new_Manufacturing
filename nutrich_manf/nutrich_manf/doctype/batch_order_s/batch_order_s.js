@@ -7,7 +7,7 @@ frappe.ui.form.on("Batch Order s", {
                 console.log(r)
                 frm.refresh_fields();
             }
-        })
+        }) 
     },  
     refresh(frm) {
         if (frm.is_new()) return;
@@ -20,10 +20,37 @@ frappe.ui.form.on("Batch Order s", {
                 frm: frm,
             }); 
         };
-
+ 
         frm.add_custom_button("Create Stock Entry", () => {
             frm.make_methods["Stock Entry"]();
         });
+
+        frm.add_custom_button("Update Cost", () => {
+            console.log("Button Clicked");
+            frm.call({
+                method: "update_cost",
+                doc: frm.doc,
+                callback: function(r){
+                    console.log(r)
+                    frm.refresh_fields();
+                }
+            }) 
+        });
+
+        if (frm.doc.docstatus === 1) {
+            frm.add_custom_button("In Subcontracting", () => {
+                frm.call({
+                    method: "create_in_subcontracting",
+                    doc: frm.doc,
+                    callback: function(r) {
+                        if (r.message) {
+                            let doc = frappe.model.sync(r.message)[0];
+                            frappe.set_route("Form", doc.doctype, doc.name);
+                        }
+                    }
+                });
+            });
+        }
     },
     onload(frm) {
         //   frm.set_query("batch", "process_definition_raw", function(doc, cdt, cdn) {
@@ -144,7 +171,7 @@ frappe.ui.form.on("Process Batch Cost", {
     },
     cost(frm,cdt,cdn){
         frappe.call({
-            method: "update_cost",
+            method: "update_per_kg_cost",
             doc: frm.doc,
             callback: function(r){
                 console.log(r)

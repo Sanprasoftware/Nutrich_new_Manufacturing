@@ -20,12 +20,12 @@
   "out_subcontracting_id",
   "subcontracting_items_section",
   "in_raw_material",
+  "section_break_jryd",
+  "finish_items",
   "section_break_clpt",
   "total_raw_qty",
   "column_break_ilrk",
   "total_raw_amount",
-  "section_break_xmnf",
-  "finished_items",
   "section_break_dcoe",
   "column_break_sdit",
   "total_qty",
@@ -127,16 +127,6 @@
    "options": "Material Items s"
   },
   {
-   "fieldname": "section_break_xmnf",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "finished_items",
-   "fieldtype": "Table",
-   "label": "Finished Items",
-   "options": "In Subcontracting Item s"
-  },
-  {
    "fieldname": "section_break_dcoe",
    "fieldtype": "Section Break"
   },
@@ -205,13 +195,23 @@
    "fieldname": "total_raw_amount",
    "fieldtype": "Float",
    "label": "Total Raw Amount"
+  },
+  {
+   "fieldname": "section_break_jryd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "finish_items",
+   "fieldtype": "Table",
+   "label": "Finish Items",
+   "options": "In Subcontracting Items"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-11 12:03:19.335029",
+ "modified": "2026-05-11 11:36:30.548221",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "In Subcontracting s",

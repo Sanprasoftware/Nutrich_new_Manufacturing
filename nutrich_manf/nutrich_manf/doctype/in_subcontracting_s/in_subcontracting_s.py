@@ -27,7 +27,9 @@ class InSubcontractings(Document):
 
 	def calculate_totals(self):
 		total_qty = 0.0
-		total_amount = 0.0 
+		total_amount = 0.0
+		total_finished_qty = 0.0
+		total_finished_amount = 0.0 
 
 		for row in self.in_raw_material or []: 
 			qty = row.quantity or 0.0
@@ -38,16 +40,28 @@ class InSubcontractings(Document):
 
 			total_qty += qty
 			total_amount += amount
+		
+		for row in self.finish_items or []:
+			qty = row.qty or 0.0
+			rate = row.valuation_rate or 0.0
+			amount = qty * rate  
+
+			row.amount = amount
+
+			total_finished_qty += qty
+			total_finished_amount += amount
 
 		self.total_raw_qty = total_qty
 		self.total_raw_amount = total_amount
-	
+		self.total_qty = total_finished_qty
+		self.total_finished_amount = total_finished_amount
+
 	@frappe.whitelist()
 	def calculate_finished_items_calculate_totals(self):
 		total_qty = 0.0
 		total_amount = 0.0 
 
-		for row in self.finished_items or []: 
+		for row in self.finish_items or []: 
 			qty = row.qty or 0.0
 			rate = row.rate or 0.0
 			amount = qty * rate  
@@ -76,15 +90,15 @@ class InSubcontractings(Document):
 				"basic_amount": row.amount,
 				"batch_no": row.batch_no,
 			})
-		for row in self.finished_items:
+		for row in self.finish_items:
 			stock_entry.append("items", {
 				"t_warehouse": row.warehouse,
-				"item_code": row.finished_item ,
-				"item_name": row.finished_item_name,
+				"item_code": row.item_code ,
+				"item_name": row.item_name,
 				"qty": row.qty,
 				"basic_rate": row.rate,
 				"basic_amount": row.amount,
-				"batch_no": row.batch_no,
+				"batch_no": row.batch,
 			})
 		stock_entry.save()
 

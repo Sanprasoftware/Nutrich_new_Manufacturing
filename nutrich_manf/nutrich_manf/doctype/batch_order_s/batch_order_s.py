@@ -6,14 +6,27 @@
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import today, add_months
+from frappe.utils import today, add_months, nowtime
 from frappe.desk.query_report import generate_report_result as get_report
 from frappe.model.mapper import get_mapped_doc
 from frappe.utils import flt 
+from frappe import _
 
 
 
 class BatchOrders(Document):
+
+	@frappe.whitelist()
+	def update_cost(self):
+		self._validate_batch_required()
+		self.process_defination_raw_amount()
+		self.calculatate_cost()
+		self.process_definition_finish_amount()
+		self.calculate_process_definition_scrap_amount()
+		self.calculate_total_out_qty_amount()
+		self.flags.ignore_validate_update_after_submit = True
+		frappe.logger().error("Update Cost Method Called")
+		self.save()
     
 	def before_save(self):
 		self._validate_batch_required()
@@ -41,6 +54,13 @@ class BatchOrders(Document):
 			has_batch = frappe.get_cached_value("Item", row.item_code, "has_batch_no")
 			if has_batch and not row.batch: 
 				missing.append(f"Finish row {idx}: Item {row.item_code}")
+			
+		for idx, row in enumerate(self.process_definition_scrap or [], start=1):
+			if not row.item_code:
+				continue
+			has_batch = frappe.get_cached_value("Item", row.item_code, "has_batch_no")
+			if has_batch and not row.batch: 
+				missing.append(f"Scrap row {idx}: Item {row.item_code}")
 
 		if missing:
 			frappe.throw(
@@ -59,6 +79,96 @@ class BatchOrders(Document):
 
 	def on_trash(self):
 		self.sync_process_order_progress()
+
+	@frappe.whitelist()
+	def create_in_subcontracting(self):
+		if not self.process_order:
+			frappe.throw(_("Process Order is required to create In Subcontracting."))
+
+		out_subcontracting = frappe.db.get_value(
+			"Out Subcontracting s",
+			{"process_order": self.process_order, "docstatus": 1},
+			[
+				"name",
+				"supplier",
+				"supplier_name",
+				"posting_date",
+				"posting_time",
+				"company",
+				"cost_center",
+				"total_quantity",
+				"outstanding_amount",
+			],
+			as_dict=True,
+			order_by="creation desc",
+		)
+		if not out_subcontracting:
+			frappe.throw(_("No submitted Out Subcontracting found for this Process Order."))
+
+		total_received = frappe.db.sql(
+			"""
+			SELECT COALESCE(SUM(total_raw_qty), 0)
+			FROM `tabIn Subcontracting s`
+			WHERE out_subcontracting_id = %s AND docstatus != 2
+			""",
+			(out_subcontracting.name,),
+		)[0][0]
+
+		remaining_qty = flt(out_subcontracting.total_quantity) - flt(total_received)
+		if remaining_qty <= 0:
+			frappe.throw(_("All quantity has already been received. No remaining quantity available."))
+
+		batch_qty = flt(self.total_raw_qty)
+		in_qty = min(batch_qty, remaining_qty) if batch_qty else remaining_qty
+		ratio = in_qty / batch_qty if batch_qty else 0
+
+		insub = frappe.new_doc("In Subcontracting s")
+		insub.supplier = out_subcontracting.supplier
+		insub.supplier_name = out_subcontracting.supplier_name
+		insub.posting_date = self.date or out_subcontracting.posting_date
+		insub.posting_time = out_subcontracting.posting_time or nowtime()
+		insub.company = out_subcontracting.company
+		insub.cost_center = self.cost_center or out_subcontracting.cost_center
+		insub.department = self.department
+		insub.out_subcontracting_id = out_subcontracting.name
+		insub.total_raw_qty = in_qty
+		insub.total_raw_amount = flt(self.total_raw_amount) * ratio
+
+		for row in self.process_definition_raw or []:
+			adjusted_qty = flt(row.qty) * ratio
+			insub.append("in_raw_material", {
+				"referance_challan": out_subcontracting.name,
+				"item": row.item_code,
+				"item_name": row.item_name,
+				"rate": row.rate,
+				"quantity": adjusted_qty,
+				"uom": row.uom,
+				"amount": flt(adjusted_qty) * flt(row.rate),
+				"batch_no": row.batch,
+				"warehouse": row.warehouse,
+			})
+
+		for row in self.process_definition_finish or []:
+			adjusted_qty = flt(row.qty) * ratio
+			insub.append("finish_items", {
+				"item_code": row.item_code,
+				"item_name": row.item_name,
+				"yeild": row.yeild,
+				"qty": adjusted_qty,
+				"uom": row.uom,
+				"rate": row.rate,
+				"amount": flt(adjusted_qty) * flt(row.rate),
+				"valuation_rate": row.valuation_rate,
+				"manufacturing_rate": row.manufacturing_rate,
+				"mfg_chart_value": flt(adjusted_qty) * flt(row.manufacturing_rate),
+				"basic_value": flt(row.basic_value) * ratio,
+				"operation_cost": flt(row.operation_cost) * ratio,
+				"total_cost": flt(row.total_cost) * ratio,
+				"batch": row.batch,
+				"warehouse": row.warehouse,
+			})
+
+		return insub
 
 	
 	def validate_difference_amount(self):
@@ -128,13 +238,9 @@ class BatchOrders(Document):
 	def process_defination_raw_amount(self):
 
 		total_qty = 0
-		total_amount = 0 
+		total_amount = 0  
 
 		for row in self.process_definition_raw: ##process_definition_raw
-			if row.qty and row.rate:	
-				row.amount = row.qty * row.rate
-				# row.amount = flt(row.qty) * flt(row.rate)
-			
 			manuf_rate = frappe.get_value("Manufacturing Rate Chart s", {"item_code": row.item_code, "process_type": self.process_type}, "rate") or 0.00
 			if self.process_type and row.item_code:
 				# frappe.throw(str(manuf_rate))
@@ -164,6 +270,7 @@ class BatchOrders(Document):
 					val_rate = frappe.get_value("Bin", {"item_code": row.item_code, "warehouse": row.warehouse}, "valuation_rate") or 0.00
 				row.rate = val_rate
 
+			row.amount = (row.qty or 0) * (row.rate or 0)
 			total_qty += (row.qty or 0)
 			total_amount += (row.amount or 0)
 
@@ -182,7 +289,8 @@ class BatchOrders(Document):
 		self.total_cost = total_cost
 
 	@frappe.whitelist()
-	def update_cost(self):
+	def update_per_kg_cost(self):
+		self.process_defination_raw_amount()
 		for row in self.process_definition_cost:
 			row.per_kg_cost = row.cost / self.total_raw_qty if self.total_raw_qty else 0
 		# self.refresh()
