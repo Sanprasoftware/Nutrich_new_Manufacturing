@@ -18,6 +18,10 @@
   "column_break_frre",
   "company",
   "out_subcontracting_id",
+  "section_break_kddz",
+  "source_warehouse",
+  "column_break_cfag",
+  "target_warehouse",
   "subcontracting_items_section",
   "in_raw_material",
   "section_break_jryd",
@@ -205,13 +209,35 @@
    "fieldtype": "Table",
    "label": "Finish Items",
    "options": "In Subcontracting Items"
+  },
+  {
+   "fieldname": "target_warehouse",
+   "fieldtype": "Link",
+   "label": "Target Warehouse",
+   "options": "Warehouse",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_kddz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "source_warehouse",
+   "fieldtype": "Link",
+   "label": "Source Warehouse",
+   "options": "Warehouse",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_cfag",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-11 11:36:30.548221",
+ "modified": "2026-05-13 12:32:26.563222",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "In Subcontracting s",

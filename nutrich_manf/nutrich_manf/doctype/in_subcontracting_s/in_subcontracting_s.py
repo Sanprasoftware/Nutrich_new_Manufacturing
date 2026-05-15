@@ -80,25 +80,28 @@ class InSubcontractings(Document):
 		stock_entry.stock_entry_type = "Sub Contracting In"
 		stock_entry.custom_in_subcontracting_id = self.name
 		
-		for row in self.in_raw_material:
-			stock_entry.append("items", {
-				"s_warehouse": row.warehouse,
-				"item_code": row.item ,
-				"item_name": row.item_name,
-				"qty": row.quantity,
-				"basic_rate": row.rate,
-				"basic_amount": row.amount,
-				"batch_no": row.batch_no,
-			})
+		# for row in self.in_raw_material:
+		# 	stock_entry.append("items", {
+		# 		"s_warehouse": row.warehouse,
+		# 		"item_code": row.item ,
+		# 		"item_name": row.item_name,
+		# 		"qty": row.quantity,
+		# 		"basic_rate": row.rate,
+		# 		"basic_amount": row.amount,
+		# 		"batch_no": row.batch_no,
+		# 	})
 		for row in self.finish_items:
 			stock_entry.append("items", {
-				"t_warehouse": row.warehouse,
+				# "t_warehouse": row.warehouse,
+				"s_warehouse": self.source_warehouse,
+				"t_warehouse": self.target_warehouse,
 				"item_code": row.item_code ,
 				"item_name": row.item_name,
 				"qty": row.qty,
 				"basic_rate": row.rate,
 				"basic_amount": row.amount,
 				"batch_no": row.batch,
+				"set_basic_rate_manually": 1
 			})
 		stock_entry.save()
 
