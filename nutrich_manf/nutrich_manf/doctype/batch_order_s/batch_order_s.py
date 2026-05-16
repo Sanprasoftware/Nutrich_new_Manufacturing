@@ -31,12 +31,13 @@ class BatchOrders(Document):
 	def before_save(self):
 		self._validate_batch_required()
 		self.process_defination_raw_amount()
+		self.calculatate_cost()
+		self.update_per_kg_cost()
 		self.process_definition_finish_amount()
 		self.calculate_process_definition_scrap_amount()
 
 
 		self.calculate_total_out_qty_amount()
-		self.calculatate_cost()
 
 	def _validate_batch_required(self):
 		missing = []
@@ -487,6 +488,12 @@ class BatchOrders(Document):
 @frappe.whitelist()
 def make_stock_entry(source_name, target_doc=None):
 
+	def set_finished_item_values(source, target, source_parent):
+		target.is_finished_item = 1
+		target.basic_rate = flt(source.basic_value) / flt(source.qty) if flt(source.qty) else 0
+		target.basic_amount = flt(source.basic_value)
+		target.amount = flt(source.basic_value)
+
 	def postprocess(source, target):
 		# Stock Entry defaults
 		target.stock_entry_type = "Manufacture"
@@ -501,6 +508,7 @@ def make_stock_entry(source_name, target_doc=None):
 				d.t_warehouse = None
 				d.transfer_qty = d.qty
 				d.conversion_factor = 1
+				d.set_basic_rate_manually = 1
 				d.allow_zero_valuation = 1
 
 		# FINISHED ITEMS → Target warehouse
@@ -521,6 +529,7 @@ def make_stock_entry(source_name, target_doc=None):
 				d.s_warehouse = None
 				d.transfer_qty = d.qty
 				d.conversion_factor = 1
+				d.set_basic_rate_manually = 1
 				d.allow_zero_valuation_rate = 1
 
 	return get_mapped_doc(
@@ -538,8 +547,9 @@ def make_stock_entry(source_name, target_doc=None):
 				"field_map": {
 					"item_code": "item_code",
 					"qty": "qty",
-					# "basic_rate": "rate",
-					"amount": "amount", 
+					"rate": "basic_rate",
+					"amount": "amount",
+					"basic_amount": "amount",
 					"uom": "uom",
 					"batch": "batch_no",
 					"warehouse": "warehouse",
@@ -553,17 +563,15 @@ def make_stock_entry(source_name, target_doc=None):
 				"field_map": {
 					"item_code": "item_code",
 					"qty": "qty",
-					"rate": "basic_rate",
-					"basic_value": "basic_amount",
-					"valuation_rate": "valuation_rate",
-					"operation_cost": "additional_cost",
+					# "valuation_rate": "valuation_rate",
+					# "operation_cost": "additional_cost",
 					"uom": "uom",
 					"warehouse": "warehouse",
 					"batch": "batch_no",
 					# "set_basic_rate_manually": 1,
 					# "basic_rate": 
 				},
-				"postprocess": lambda src, tgt, src_parent: setattr(tgt, "is_finished_item", 1),
+				"postprocess": set_finished_item_values,
 			},
 
 			# ---------------- SCRAP ----------------

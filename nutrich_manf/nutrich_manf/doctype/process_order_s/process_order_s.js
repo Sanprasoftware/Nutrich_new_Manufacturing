@@ -140,7 +140,7 @@ frappe.ui.form.on("Process Order s", {
                 query: "erpnext.controllers.queries.get_batch_no",
                 filters: {
                     item_code: row.item_code,
-                    warehouse: row.warehouse,
+                    // warehouse: row.warehouse,
                     posting_date: doc.date
                 }
             };

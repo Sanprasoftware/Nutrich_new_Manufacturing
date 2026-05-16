@@ -153,6 +153,7 @@ doc_events = {
         "before_save": [
             "nutrich_manf.public.py.stock_entry.calculate_difference",
             "nutrich_manf.public.py.stock_entry.set_cost_center",
+            "nutrich_manf.public.py.stock_entry.calculate_amount",
         ]
     }
 }

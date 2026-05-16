@@ -177,3 +177,11 @@ def set_cost_center(doc, method=None):
     if doc.cost_center:
         for row in doc.items:
             row.cost_center = doc.cost_center
+
+
+def calculate_amount(doc,method=None):
+    if doc.custom_batch_order_id:
+        for row in doc.items:
+            row.basic_amount = flt(row.basic_rate) * flt(row.qty)
+            row.amount = flt(row.basic_amount) + flt(row.additional_cost)
+            row.valuation_rate = flt(row.amount) / flt(row.qty) if flt(row.qty) else 0
