@@ -1,4 +1,7 @@
 frappe.ui.form.on("Process Definition s", {
+    onload(frm) {
+        set_non_group_warehouse_queries(frm);
+    },
     refresh(frm) {
         if (frm.is_new()) return;
 
@@ -10,12 +13,28 @@ frappe.ui.form.on("Process Definition s", {
                 frm: frm,
             }); 
         };
-
+ 
         frm.add_custom_button("Create Process Order", () => {
             frm.make_methods["Process Order s"](); 
         });
     },
 });
+
+function set_non_group_warehouse_queries(frm) {
+    [
+        "process_definition_raw",
+        "process_definition_finish",
+        "process_definition_scrap"
+    ].forEach((table_field) => {
+        frm.set_query("warehouse", table_field, () => {
+            return {
+                filters: {
+                    is_group: 0
+                }
+            };
+        });
+    });
+}
 
 frappe.ui.form.on("Process Definition raw", {
     qty(frm,cdt,cdn){ 

@@ -11,6 +11,9 @@ from frappe.desk.query_report import generate_report_result as get_report
 from frappe.model.mapper import get_mapped_doc
 from frappe.utils import flt 
 from frappe import _
+from nutrich_manf.nutrich_manf.doctype.process_order_s.process_order_s import (
+	get_batch_order_qty_for_process,
+)
 
 
 
@@ -38,6 +41,7 @@ class BatchOrders(Document):
 
 
 		self.calculate_total_out_qty_amount()
+		self.validate_process_order_batch_qty()
 
 	def _validate_batch_required(self):
 		missing = []
@@ -176,6 +180,30 @@ class BatchOrders(Document):
 		if self.difference_amount != self.total_cost or self.difference_amount !=0:
 			frappe.throw("Difference Amount must be equal to Total Cost or Zero")
 
+	def validate_process_order_batch_qty(self):
+		if not self.process_order:
+			return
+
+		process_order_qty = frappe.db.get_value("Process Order s", self.process_order, "total_raw_qty")
+		if process_order_qty is None:
+			return
+
+		used_qty = get_batch_order_qty_for_process(self.process_order, self.name)
+		remaining_qty = flt(process_order_qty) - flt(used_qty)
+		batch_qty = flt(self.total_raw_qty)
+
+		if batch_qty > remaining_qty:
+			frappe.throw(
+				_(
+					"Remaining quantity for Process Order {0} is {1}. "
+					"Batch Order quantity cannot be {2}."
+				).format(
+					self.process_order,
+					flt(max(remaining_qty, 0), self.precision("total_raw_qty")),
+					flt(batch_qty, self.precision("total_raw_qty")),
+				)
+			)
+
 	def sync_process_order_progress(self):
 		if not self.process_order:
 			return
@@ -271,12 +299,12 @@ class BatchOrders(Document):
 					val_rate = frappe.get_value("Bin", {"item_code": row.item_code, "warehouse": row.warehouse}, "valuation_rate") or 0.00
 				row.rate = val_rate
 
-			row.amount = (row.qty or 0) * (row.rate or 0)
-			total_qty += (row.qty or 0)
-			total_amount += (row.amount or 0)
+			row.amount = flt((row.qty or 0) * (row.rate or 0), row.precision("amount"))
+			total_qty += flt(row.qty)
+			total_amount += flt(row.amount)
 
-		self.total_raw_qty = total_qty
-		self.total_raw_amount = total_amount
+		self.total_raw_qty = flt(total_qty, self.precision("total_raw_qty"))
+		self.total_raw_amount = flt(total_amount, self.precision("total_raw_amount"))
  
 	
 	# Process Definition Cost Child Table Calculations------------------------------------------------------------------------------------
@@ -364,13 +392,13 @@ class BatchOrders(Document):
 				row.valuation_rate = 0
 
 			# final row amount
-			row.amount = (row.qty or 0) * (row.valuation_rate or 0)
+			row.amount = flt((row.qty or 0) * (row.valuation_rate or 0), row.precision("amount"))
 			# row.amount = flt(row.qty) * flt(row.valuation_rate)
 			# row.amount = round(flt(row.qty) * flt(row.valuation_rate))
 
-			total_finish_amount += (row.amount or 0)
+			total_finish_amount += flt(row.amount)
 
-		self.total_finish_amount = total_finish_amount
+		self.total_finish_amount = flt(total_finish_amount, self.precision("total_finish_amount"))
 
 
 		# ---------------- OPERATION COST SPLIT ----------------
@@ -380,7 +408,8 @@ class BatchOrders(Document):
 					row.operation_cost = (
 						row.amount / self.total_finish_amount
 					) * self.total_cost
-					row.basic_value = row.amount - row.operation_cost
+					row.operation_cost = flt(row.operation_cost, row.precision("operation_cost"))
+					row.basic_value = flt(row.amount - row.operation_cost, row.precision("basic_value"))
 
 
 
@@ -451,11 +480,11 @@ class BatchOrders(Document):
 			else:
 				row.valuation_rate = 0
 
-			row.amount = (row.qty or 0) * (row.valuation_rate or 0)
+			row.amount = flt((row.qty or 0) * (row.valuation_rate or 0), row.precision("amount"))
 
-			total_scrap_amount += (row.amount or 0)
+			total_scrap_amount += flt(row.amount)
 
-		self.total_scrap_amount = total_scrap_amount
+		self.total_scrap_amount = flt(total_scrap_amount, self.precision("total_scrap_amount"))
 
 
 		# ---------------- OPERATION COST SPLIT ----------------
@@ -465,7 +494,8 @@ class BatchOrders(Document):
 					row.operation_cost = (
 						row.amount / self.total_scrap_amount
 					) * self.total_cost
-					row.basic_value = row.amount - row.operation_cost
+					row.operation_cost = flt(row.operation_cost, row.precision("operation_cost"))
+					row.basic_value = flt(row.amount - row.operation_cost, row.precision("basic_value"))
 
 
 
@@ -477,29 +507,66 @@ class BatchOrders(Document):
 		self.total_in_amount = self.total_raw_amount  # Changed By Devika Mam on 29-04-2026
 
 		self.total_out_qty = self.total_finish_qty + self.total_scrap_qty
-		self.total_out_material_amount = self.total_finish_amount + self.total_scrap_amount
+		self.total_out_material_amount = flt(
+			self.total_finish_amount + self.total_scrap_amount,
+			self.precision("total_out_material_amount"),
+		)
 
 		self.difference_quantity = self.total_raw_qty - self.total_out_qty
 		# self.difference_amount = self.total_raw_amount + self.total_cost - self.total_out_material_amount
-		self.difference_amount = self.total_finish_amount - self.total_raw_amount 
+		self.difference_amount = flt(
+			self.total_finish_amount - self.total_raw_amount,
+			self.precision("difference_amount"),
+		)
  
 
 
 @frappe.whitelist()
 def make_stock_entry(source_name, target_doc=None):
+	remaining_qty = get_remaining_stock_entry_raw_qty(source_name)
+	if remaining_qty <= 0:
+		frappe.throw(_("All raw quantity has already been used in Stock Entries. No remaining quantity available."))
+
+	def set_batch_item_values(source, target, source_parent):
+		target.basic_rate = flt(source.get("rate") or source.get("basic_rate") or source.get("valuation_rate"))
+		target.basic_amount = flt(source.get("basic_value") or source.get("amount"))
+		target.amount = flt(source.get("amount") or source.get("basic_value"))
+		target.valuation_rate = (
+			flt(source.get("valuation_rate") or target.amount / flt(source.qty)) if flt(source.qty) else 0
+		)
 
 	def set_finished_item_values(source, target, source_parent):
 		target.is_finished_item = 1
-		target.basic_rate = flt(source.basic_value) / flt(source.qty) if flt(source.qty) else 0
-		target.basic_amount = flt(source.basic_value)
-		target.amount = flt(source.basic_value)
+		target.basic_amount = flt(source.get("basic_value") or source.get("amount"))
+		target.basic_rate = flt(target.basic_amount / flt(source.qty)) if flt(source.qty) else 0
+		target.additional_cost = flt(source.get("operation_cost"))
+		target.amount = flt(source.get("amount") or source.get("basic_value"))
+		target.valuation_rate = (
+			flt(source.get("valuation_rate") or target.amount / flt(source.qty)) if flt(source.qty) else 0
+		)
+
+	def set_scrap_item_values(source, target, source_parent):
+		target.is_legacy_scrap_item = 1
+		set_batch_item_values(source, target, source_parent)
 
 	def postprocess(source, target):
 		# Stock Entry defaults
 		target.stock_entry_type = "Manufacture"
+		target.purpose = "Manufacture"
 		# target.posting_date = source.date
 		target.custom_batch_order_id = source.name
 		target.naming_series = source.manufacturing_naming_series
+		ratio = remaining_qty / flt(source.total_raw_qty) if flt(source.total_raw_qty) else 0
+
+		for d in target.items:
+			d.qty = flt(d.qty) * ratio
+			d.transfer_qty = d.qty
+			for fieldname in ("basic_amount", "amount", "additional_cost"):
+				if d.meta.has_field(fieldname):
+					d.set(fieldname, flt(d.get(fieldname)) * ratio)
+
+		for d in target.additional_costs:
+			d.amount = flt(d.amount) * ratio
 
 		# RAW MATERIALS → Source warehouse
 		for d in target.items:
@@ -547,14 +614,12 @@ def make_stock_entry(source_name, target_doc=None):
 				"field_map": {
 					"item_code": "item_code",
 					"qty": "qty",
-					"rate": "basic_rate",
-					"amount": "amount",
-					"basic_amount": "amount",
 					"uom": "uom",
 					"batch": "batch_no",
 					"warehouse": "warehouse",
 
 				},
+				"postprocess": set_batch_item_values,
 			},
 
 			# ---------------- FINISHED ----------------
@@ -583,9 +648,8 @@ def make_stock_entry(source_name, target_doc=None):
 					"uom": "uom",
 					"warehouse": "warehouse",
 					"batch": "batch_no",
-					# "basic_rate": "rate",
 				},
-				"postprocess": lambda src, tgt, src_parent: setattr(tgt, "is_legacy_scrap_item", 1),
+				"postprocess": set_scrap_item_values,
 			},
 
 			# ---------------- ADDITIONAL COST ----------------
@@ -603,3 +667,40 @@ def make_stock_entry(source_name, target_doc=None):
 		target_doc,
 		postprocess=postprocess,
 	)
+
+
+def get_stock_entry_raw_qty_for_batch_order(batch_order_name, exclude_stock_entry=None):
+	if not batch_order_name:
+		return 0
+
+	conditions = [
+		"se.docstatus < 2",
+		"se.custom_batch_order_id = %s",
+		"sed.s_warehouse IS NOT NULL",
+		"sed.s_warehouse != ''",
+	]
+	values = [batch_order_name]
+	if exclude_stock_entry:
+		conditions.append("se.name != %s")
+		values.append(exclude_stock_entry)
+
+	result = frappe.db.sql(
+		f"""
+		SELECT COALESCE(SUM(sed.qty), 0)
+		FROM `tabStock Entry` se
+		INNER JOIN `tabStock Entry Detail` sed ON sed.parent = se.name
+		WHERE {" AND ".join(conditions)}
+		""",
+		tuple(values),
+	)
+	return flt(result[0][0]) if result else 0
+
+
+@frappe.whitelist()
+def get_remaining_stock_entry_raw_qty(batch_order_name, exclude_stock_entry=None):
+	if not batch_order_name:
+		return 0
+
+	batch_order_qty = frappe.db.get_value("Batch Order s", batch_order_name, "total_raw_qty")
+	used_qty = get_stock_entry_raw_qty_for_batch_order(batch_order_name, exclude_stock_entry)
+	return max(flt(batch_order_qty) - flt(used_qty), 0)

@@ -21,9 +21,19 @@ frappe.ui.form.on("Process Order s", {
                 frm: frm,
             });
         };
-        frm.add_custom_button("Batch Order", () => {
-            frm.make_methods["Batch Order s"]();
-        }, __("Create")); 
+        frappe.call({
+            method: "nutrich_manf.nutrich_manf.doctype.process_order_s.process_order_s.get_remaining_batch_order_qty",
+            args: {
+                process_order_name: frm.doc.name,
+            },
+            callback: function(r) {
+                if (parseFloat(r.message || 0) > 0) {
+                    frm.add_custom_button("Batch Order", () => {
+                        frm.make_methods["Batch Order s"]();
+                    }, __("Create"));
+                }
+            }
+        });
         
 
 
@@ -96,6 +106,7 @@ frappe.ui.form.on("Process Order s", {
 
     // }
     onload(frm) {
+        set_non_group_warehouse_queries(frm);
         //   frm.set_query("batch", "process_definition_raw", function(doc, cdt, cdn) {
         //     const row = locals[cdt][cdn];
         //     if (!row.item_code) {
@@ -165,7 +176,7 @@ frappe.ui.form.on("Process Order s", {
                 query: "erpnext.controllers.queries.get_batch_no",
                 filters: {
                     item_code: row.item_code,
-                    warehouse: row.warehouse,
+                    // warehouse: row.warehouse,
                     posting_date: doc.date
                 }
             };
@@ -173,6 +184,22 @@ frappe.ui.form.on("Process Order s", {
       
     }
 });
+
+function set_non_group_warehouse_queries(frm) {
+    [
+        "process_definition_raw",
+        "process_definition_finish",
+        "process_definition_scrap"
+    ].forEach((table_field) => {
+        frm.set_query("warehouse", table_field, () => {
+            return {
+                filters: {
+                    is_group: 0
+                }
+            };
+        });
+    });
+}
 
 
 

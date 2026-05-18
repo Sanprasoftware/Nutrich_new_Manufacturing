@@ -51,12 +51,94 @@ from erpnext.stock.stock_ledger import NegativeStockError, get_previous_sle, get
 from erpnext.stock.utils import get_bin, get_incoming_rate
 
 from erpnext.stock.doctype.stock_entry.stock_entry import StockEntry
+from nutrich_manf.nutrich_manf.doctype.batch_order_s.batch_order_s import (
+    get_stock_entry_raw_qty_for_batch_order,
+)
 
 
 class FinishedGoodError(frappe.ValidationError):
 	pass
 
 class customStockEntry(StockEntry):
+
+    def is_batch_order_manufacture(self):
+        return self.purpose == "Manufacture" and self.custom_batch_order_id
+
+    def validate(self):
+        super().validate()
+        self.validate_batch_order_raw_qty()
+
+    def validate_batch_order_raw_qty(self):
+        if not self.custom_batch_order_id:
+            return
+
+        batch_order_qty = frappe.db.get_value("Batch Order s", self.custom_batch_order_id, "total_raw_qty")
+        if batch_order_qty is None:
+            return
+
+        used_qty = get_stock_entry_raw_qty_for_batch_order(self.custom_batch_order_id, self.name)
+        remaining_qty = flt(batch_order_qty) - flt(used_qty)
+        current_raw_qty = sum(flt(row.qty) for row in self.items if row.s_warehouse)
+
+        if current_raw_qty > remaining_qty:
+            frappe.throw(
+                _(
+                    "Remaining raw quantity for Batch Order {0} is {1}. "
+                    "Stock Entry raw quantity cannot be {2}."
+                ).format(
+                    self.custom_batch_order_id,
+                    flt(max(remaining_qty, 0), self.precision("fg_completed_qty")),
+                    flt(current_raw_qty, self.precision("fg_completed_qty")),
+                )
+            )
+
+    def calculate_rate_and_amount(self, reset_outgoing_rate=True, raise_error_if_no_rate=True):
+        if not self.is_batch_order_manufacture():
+            return super().calculate_rate_and_amount(reset_outgoing_rate, raise_error_if_no_rate)
+
+        init_landed_taxes_and_totals(self)
+        self.total_additional_costs = sum(flt(t.base_amount) for t in self.get("additional_costs"))
+        self.set_batch_order_totals()
+        self.set_total_amount()
+
+    def set_batch_order_totals(self):
+        batch_order_totals = frappe.db.get_value(
+            "Batch Order s",
+            self.custom_batch_order_id,
+            ["total_raw_amount", "total_finish_amount", "total_scrap_amount"],
+            as_dict=True,
+        )
+
+        if batch_order_totals:
+            self.total_outgoing_value = flt(
+                batch_order_totals.total_raw_amount,
+                self.precision("total_outgoing_value"),
+            )
+            self.total_incoming_value = flt(
+                flt(batch_order_totals.total_finish_amount) + flt(batch_order_totals.total_scrap_amount),
+                self.precision("total_incoming_value"),
+            )
+            self.value_difference = flt(self.total_additional_costs)
+            return
+
+        self.total_incoming_value = 0.0
+        self.total_outgoing_value = 0.0
+
+        for row in self.get("items"):
+            if row.t_warehouse:
+                self.total_incoming_value += flt(row.amount)
+            if row.s_warehouse:
+                self.total_outgoing_value += flt(row.amount)
+
+        self.total_incoming_value = flt(
+            self.total_incoming_value,
+            self.precision("total_incoming_value"),
+        )
+        self.total_outgoing_value = flt(
+            self.total_outgoing_value,
+            self.precision("total_outgoing_value"),
+        )
+        self.value_difference = flt(self.total_additional_costs)
 
     def get_gl_entries(self, inventory_account_map):
         gl_entries = super().get_gl_entries(inventory_account_map)
@@ -181,7 +263,4 @@ def set_cost_center(doc, method=None):
 
 def calculate_amount(doc,method=None):
     if doc.custom_batch_order_id:
-        for row in doc.items:
-            row.basic_amount = flt(row.basic_rate) * flt(row.qty)
-            row.amount = flt(row.basic_amount) + flt(row.additional_cost)
-            row.valuation_rate = flt(row.amount) / flt(row.qty) if flt(row.qty) else 0
+        return

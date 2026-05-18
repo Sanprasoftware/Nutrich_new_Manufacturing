@@ -4,7 +4,7 @@
 import frappe
 from frappe.model.document import Document
 from frappe.model.mapper import get_mapped_doc
-
+ 
 
 class ProcessDefinitions(Document):
 	
@@ -81,7 +81,7 @@ class ProcessDefinitions(Document):
 								) or 0.00
 					if not val_rate:
 						val_rate = frappe.get_value("Bin", {"item_code": row.item_code, "warehouse": row.warehouse}, "valuation_rate") or 0.00
-					row.rate = val_rate
+					# row.rate = val_rate  # Commented By Devika Mam on 16-05-2026
 
 				total_qty += (row.qty or 0)
 				total_amount += (row.amount or 0)

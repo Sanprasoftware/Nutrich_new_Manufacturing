@@ -385,6 +385,52 @@ class ProcessOrders(Document):
 
 @frappe.whitelist()
 def make_batch_order(source_name, target_doc=None):
+    remaining_qty = get_remaining_batch_order_qty(source_name)
+    if remaining_qty <= 0:
+        frappe.throw(_("All quantity has already been used in Batch Orders. No remaining quantity available."))
+
+    def _scale_child_rows(rows, ratio):
+        for row in rows or []:
+            for fieldname in (
+                "qty",
+                "amount",
+                "cost",
+                "basic_value",
+                "operation_cost",
+                "total_cost",
+                "mfg_chart_value",
+            ):
+                if row.meta.has_field(fieldname):
+                    row.set(fieldname, flt(row.get(fieldname)) * ratio)
+
+    def _postprocess(source, target):
+        original_qty = flt(source.total_raw_qty)
+        ratio = remaining_qty / original_qty if original_qty else 0
+
+        target.quantity = remaining_qty
+        target.total_raw_qty = remaining_qty
+
+        _scale_child_rows(target.process_definition_raw, ratio)
+        _scale_child_rows(target.process_definition_cost, ratio)
+        _scale_child_rows(target.process_definition_finish, ratio)
+        _scale_child_rows(target.process_definition_scrap, ratio)
+
+        for fieldname in (
+            "total_raw_amount",
+            "total_cost",
+            "total_finish_qty",
+            "total_finish_amount",
+            "total_scrap_qty",
+            "total_scrap_amount",
+            "total_out_material_amount",
+            "difference_quantity",
+            "difference_amount",
+        ):
+            if target.meta.has_field(fieldname):
+                target.set(fieldname, flt(target.get(fieldname)) * ratio)
+
+        target.total_in_qty = remaining_qty
+
     return get_mapped_doc(
         "Process Order s",
         source_name,
@@ -435,6 +481,7 @@ def make_batch_order(source_name, target_doc=None):
             },
         },
         target_doc,
+        postprocess=_postprocess,
     )
 
 
@@ -558,6 +605,37 @@ def get_completed_qty_from_batch_orders(process_order_name):
 		(process_order_name,),
 	)
 	return flt(result[0][0]) if result else 0
+
+
+def get_batch_order_qty_for_process(process_order_name, exclude_batch_order=None):
+	if not process_order_name:
+		return 0
+
+	conditions = ["docstatus < 2", "process_order = %s"]
+	values = [process_order_name]
+	if exclude_batch_order:
+		conditions.append("name != %s")
+		values.append(exclude_batch_order)
+
+	result = frappe.db.sql(
+		f"""
+		SELECT COALESCE(SUM(total_raw_qty), 0)
+		FROM `tabBatch Order s`
+		WHERE {" AND ".join(conditions)}
+		""",
+		tuple(values),
+	)
+	return flt(result[0][0]) if result else 0
+
+
+@frappe.whitelist()
+def get_remaining_batch_order_qty(process_order_name, exclude_batch_order=None):
+	if not process_order_name:
+		return 0
+
+	process_order_qty = frappe.db.get_value("Process Order s", process_order_name, "total_raw_qty")
+	used_qty = get_batch_order_qty_for_process(process_order_name, exclude_batch_order)
+	return max(flt(process_order_qty) - flt(used_qty), 0)
 
 
 def update_process_order_progress(process_order_name):

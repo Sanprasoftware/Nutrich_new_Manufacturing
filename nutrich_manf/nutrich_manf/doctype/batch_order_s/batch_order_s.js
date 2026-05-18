@@ -21,8 +21,18 @@ frappe.ui.form.on("Batch Order s", {
             }); 
         };
  
-        frm.add_custom_button("Create Stock Entry", () => {
-            frm.make_methods["Stock Entry"]();
+        frappe.call({
+            method: "nutrich_manf.nutrich_manf.doctype.batch_order_s.batch_order_s.get_remaining_stock_entry_raw_qty",
+            args: {
+                batch_order_name: frm.doc.name,
+            },
+            callback: function(r) {
+                if (parseFloat(r.message || 0) > 0) {
+                    frm.add_custom_button("Create Stock Entry", () => {
+                        frm.make_methods["Stock Entry"]();
+                    });
+                }
+            }
         });
 
         frm.add_custom_button("Update Cost", () => {
@@ -53,6 +63,7 @@ frappe.ui.form.on("Batch Order s", {
         }
     },
     onload(frm) {
+        set_non_group_warehouse_queries(frm);
         //   frm.set_query("batch", "process_definition_raw", function(doc, cdt, cdn) {
         //     const row = locals[cdt][cdn];
         //     if (!row.item_code) {
@@ -130,6 +141,22 @@ frappe.ui.form.on("Batch Order s", {
       
     }
 });
+
+function set_non_group_warehouse_queries(frm) {
+    [
+        "process_definition_raw",
+        "process_definition_finish",
+        "process_definition_scrap"
+    ].forEach((table_field) => {
+        frm.set_query("warehouse", table_field, () => {
+            return {
+                filters: {
+                    is_group: 0
+                }
+            };
+        });
+    });
+}
 
 
 frappe.ui.form.on("Process Batch raw", {
