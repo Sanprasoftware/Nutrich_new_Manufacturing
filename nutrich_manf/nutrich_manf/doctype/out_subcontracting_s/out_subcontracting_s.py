@@ -4,12 +4,14 @@
 import frappe
 from frappe.utils import flt
 from frappe.model.document import Document
+from frappe import _
 
 
 
 class OutSubcontractings(Document): 
 	def validate(self):
 		self._calculate_totals()
+		self.validate_process_order_qty()
 		self.set_per_received()
 
 	def on_submit(self):
@@ -44,6 +46,30 @@ class OutSubcontractings(Document):
 		if qty or rate:
 			return flt(qty * rate)
 		return flt(row.amount)
+
+	def validate_process_order_qty(self):
+		if not self.process_order:
+			return
+
+		process_order_qty = frappe.db.get_value("Process Order s", self.process_order, "total_raw_qty")
+		if process_order_qty is None:
+			return
+
+		used_qty = get_out_subcontracting_qty_for_process_order(self.process_order, self.name)
+		remaining_qty = flt(process_order_qty) - flt(used_qty)
+		current_qty = flt(self.total_quantity)
+
+		if current_qty > remaining_qty:
+			frappe.throw(
+				_(
+					"Remaining quantity for Process Order {0} is {1}. "
+					"Out Subcontracting quantity cannot be {2}."
+				).format(
+					self.process_order,
+					flt(max(remaining_qty, 0), self.precision("total_quantity")),
+					flt(current_qty, self.precision("total_quantity")),
+				)
+			)
 	
 	def create_stock_entry(self):
 		stock_entry = frappe.new_doc("Stock Entry")
@@ -82,11 +108,35 @@ def get_received_qty_from_in_subcontracting(out_subcontracting_name):
 
 	result = frappe.db.sql(
 		"""
-		SELECT COALESCE(SUM(total_raw_qty), 0)
-		FROM `tabIn Subcontracting s`
-		WHERE docstatus < 2 AND out_subcontracting_id = %s
+		SELECT COALESCE(SUM(raw.quantity), 0)
+		FROM `tabMaterial Items s` raw
+		INNER JOIN `tabIn Subcontracting s` insub ON insub.name = raw.parent
+		WHERE insub.docstatus < 2
+			AND raw.parenttype = 'In Subcontracting s'
+			AND raw.referance_challan = %s
 		""",
 		(out_subcontracting_name,),
+	)
+	return flt(result[0][0]) if result else 0
+
+
+def get_out_subcontracting_qty_for_process_order(process_order_name, exclude_out_subcontracting=None):
+	if not process_order_name:
+		return 0
+
+	conditions = ["docstatus < 2", "process_order = %s"]
+	values = [process_order_name]
+	if exclude_out_subcontracting:
+		conditions.append("name != %s")
+		values.append(exclude_out_subcontracting)
+
+	result = frappe.db.sql(
+		f"""
+		SELECT COALESCE(SUM(total_quantity), 0)
+		FROM `tabOut Subcontracting s`
+		WHERE {" AND ".join(conditions)}
+		""",
+		tuple(values),
 	)
 	return flt(result[0][0]) if result else 0
 

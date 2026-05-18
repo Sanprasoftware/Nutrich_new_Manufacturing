@@ -17,7 +17,7 @@
   "cost_center",
   "column_break_frre",
   "company",
-  "out_subcontracting_id",
+  "batch_order",
   "section_break_kddz",
   "source_warehouse",
   "column_break_cfag",
@@ -182,10 +182,11 @@
    "label": "Rounded Total"
   },
   {
-   "fieldname": "out_subcontracting_id",
+   "fieldname": "batch_order",
    "fieldtype": "Link",
-   "label": "Out Subcontracting Id",
-   "options": "Out Subcontracting s"
+   "label": "Batch Order",
+   "options": "Batch Order s",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_clpt",

@@ -129,7 +129,7 @@ frappe.ui.form.on("Process Definition Scrap", {
         calculateAmt_scrap(frm)  
     },
     rate(frm,cdt,cdn){
-        calculateAmt_scrap(frm)  
+        calculateAmt_scrap(frm)     
     },
     warehouse(frm,cdt,cdn){
         calculateAmt_scrap(frm)  

@@ -3,27 +3,17 @@
 
 import frappe
 from frappe.model.document import Document
-from nutrich_manf.nutrich_manf.doctype.out_subcontracting_s.out_subcontracting_s import (
-	update_out_subcontracting_progress,
-)
+from frappe import _
+from frappe.utils import flt
 
 
 class InSubcontractings(Document):
 	def validate(self):
 		self.calculate_totals()
+		self.validate_batch_order_qty()
 	
 	def on_submit(self):
 		self.create_stock_entry()
-		self.sync_out_subcontracting_progress()
-
-	def on_update(self):
-		self.sync_out_subcontracting_progress()
-
-	def on_cancel(self):
-		self.sync_out_subcontracting_progress()
-
-	def on_trash(self):
-		self.sync_out_subcontracting_progress()
 
 	def calculate_totals(self):
 		total_qty = 0.0
@@ -55,6 +45,30 @@ class InSubcontractings(Document):
 		self.total_raw_amount = total_amount
 		self.total_qty = total_finished_qty
 		self.total_finished_amount = total_finished_amount
+
+	def validate_batch_order_qty(self):
+		batch_order = self.get("batch_order")
+		if not batch_order:
+			return
+
+		batch_order_qty = frappe.db.get_value("Batch Order s", batch_order, "total_raw_qty")
+		if batch_order_qty is None:
+			return
+
+		used_qty = get_in_subcontracting_qty_for_batch_order(batch_order, self.name)
+		remaining_qty = flt(batch_order_qty) - flt(used_qty)
+		current_qty = flt(self.total_raw_qty)
+		if current_qty > remaining_qty:
+			frappe.throw(
+				_(
+					"Remaining quantity for Batch Order {0} is {1}. "
+					"In Subcontracting total raw quantity cannot be {2}."
+				).format(
+					batch_order,
+					flt(max(remaining_qty, 0), self.precision("total_raw_qty")),
+					flt(current_qty, self.precision("total_raw_qty")),
+				)
+			)
 
 	@frappe.whitelist()
 	def calculate_finished_items_calculate_totals(self):
@@ -105,6 +119,23 @@ class InSubcontractings(Document):
 			})
 		stock_entry.save()
 
-	def sync_out_subcontracting_progress(self):
-		if self.out_subcontracting_id:
-			update_out_subcontracting_progress(self.out_subcontracting_id)
+
+def get_in_subcontracting_qty_for_batch_order(batch_order, exclude_in_subcontracting=None):
+	if not batch_order:
+		return 0
+
+	conditions = ["docstatus < 2", "batch_order = %s"]
+	values = [batch_order]
+	if exclude_in_subcontracting:
+		conditions.append("name != %s")
+		values.append(exclude_in_subcontracting)
+
+	result = frappe.db.sql(
+		f"""
+		SELECT COALESCE(SUM(total_raw_qty), 0)
+		FROM `tabIn Subcontracting s`
+		WHERE {" AND ".join(conditions)}
+		""",
+		tuple(values),
+	)
+	return flt(result[0][0]) if result else 0

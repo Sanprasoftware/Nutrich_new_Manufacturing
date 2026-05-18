@@ -30,9 +30,5 @@ frappe.ui.form.on("In Subcontracting Item s", {
             }
         })
 	},
-    finished_items_add(frm,cdt,cdn){
-        frappe.model.set_value(cdt,cdn,"ref_challan",frm.doc.out_subcontracting_id)
-        frm.refresh_fields(["finished_items"]); 
-    }
 });
   

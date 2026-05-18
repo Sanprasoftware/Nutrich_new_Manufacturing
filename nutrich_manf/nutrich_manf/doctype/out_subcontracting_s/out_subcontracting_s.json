@@ -363,10 +363,6 @@
   {
    "link_doctype": "Stock Entry",
    "link_fieldname": "custom_out_subcontracting_id"
-  },
-  {
-   "link_doctype": "In Subcontracting s",
-   "link_fieldname": "out_subcontracting_id"
   }
  ],
  "modified": "2026-04-11 11:58:25.258783",

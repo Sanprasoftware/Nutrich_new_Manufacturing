@@ -110,21 +110,11 @@ class BatchOrders(Document):
 		if not out_subcontracting:
 			frappe.throw(_("No submitted Out Subcontracting found for this Process Order."))
 
-		total_received = frappe.db.sql(
-			"""
-			SELECT COALESCE(SUM(total_raw_qty), 0)
-			FROM `tabIn Subcontracting s`
-			WHERE out_subcontracting_id = %s AND docstatus != 2
-			""",
-			(out_subcontracting.name,),
-		)[0][0]
-
-		remaining_qty = flt(out_subcontracting.total_quantity) - flt(total_received)
-		if remaining_qty <= 0:
-			frappe.throw(_("All quantity has already been received. No remaining quantity available."))
-
 		batch_qty = flt(self.total_raw_qty)
-		in_qty = min(batch_qty, remaining_qty) if batch_qty else remaining_qty
+		if batch_qty <= 0:
+			frappe.throw(_("Batch Order total raw quantity must be greater than zero."))
+
+		in_qty = batch_qty
 		ratio = in_qty / batch_qty if batch_qty else 0
 
 		insub = frappe.new_doc("In Subcontracting s")
@@ -135,7 +125,7 @@ class BatchOrders(Document):
 		insub.company = out_subcontracting.company
 		insub.cost_center = self.cost_center or out_subcontracting.cost_center
 		insub.department = self.department
-		insub.out_subcontracting_id = out_subcontracting.name
+		insub.batch_order = self.name
 		insub.total_raw_qty = in_qty
 		insub.total_raw_amount = flt(self.total_raw_amount) * ratio
 
