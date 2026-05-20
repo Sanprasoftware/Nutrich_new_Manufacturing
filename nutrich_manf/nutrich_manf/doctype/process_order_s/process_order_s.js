@@ -127,7 +127,8 @@ frappe.ui.form.on("Process Order s", {
                 filters: {
                     item_code: row.item_code,
                     warehouse: row.warehouse,
-                    posting_date: doc.date
+                    posting_date: doc.date,
+                    is_inward: 1
                 }
             };
         });
@@ -152,7 +153,8 @@ frappe.ui.form.on("Process Order s", {
                 filters: {
                     item_code: row.item_code,
                     // warehouse: row.warehouse,
-                    posting_date: doc.date
+                    posting_date: doc.date,
+                    is_inward: 1
                 }
             };
         });
@@ -177,7 +179,8 @@ frappe.ui.form.on("Process Order s", {
                 filters: {
                     item_code: row.item_code,
                     // warehouse: row.warehouse,
-                    posting_date: doc.date
+                    posting_date: doc.date,
+                    is_inward: 1
                 }
             };
         });

@@ -1,6 +1,7 @@
 frappe.ui.form.on("Process Definition s", {
     onload(frm) {
         set_non_group_warehouse_queries(frm);
+        set_batch_queries(frm);
     },
     refresh(frm) {
         if (frm.is_new()) return;
@@ -30,6 +31,38 @@ function set_non_group_warehouse_queries(frm) {
             return {
                 filters: {
                     is_group: 0
+                }
+            };
+        });
+    });
+}
+
+function set_batch_queries(frm) {
+    frm.set_query("batch", "process_definition_raw", function(doc, cdt, cdn) {
+        let row = locals[cdt][cdn];
+
+        return {
+            query: "erpnext.controllers.queries.get_batch_no",
+            filters: {
+                item_code: row.item_code,
+                warehouse: row.warehouse,
+                posting_date: doc.date,
+                is_inward: 1
+            }
+        };
+    });
+
+    ["process_definition_finish", "process_definition_scrap"].forEach((table_field) => {
+        frm.set_query("batch", table_field, function(doc, cdt, cdn) {
+            let row = locals[cdt][cdn];
+
+            return {
+                query: "erpnext.controllers.queries.get_batch_no",
+                filters: {
+                    item_code: row.item_code,
+                    warehouse: row.warehouse,
+                    posting_date: doc.date,
+                    is_inward: 1
                 }
             };
         });

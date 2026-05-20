@@ -19,6 +19,10 @@ from nutrich_manf.nutrich_manf.doctype.process_order_s.process_order_s import (
 
 class BatchOrders(Document):
 
+	def before_insert(self):
+		if not self.status:
+			self.status = "Not Start"
+
 	@frappe.whitelist()
 	def update_cost(self):
 		self._validate_batch_required()
@@ -684,6 +688,36 @@ def get_stock_entry_raw_qty_for_batch_order(batch_order_name, exclude_stock_entr
 		tuple(values),
 	)
 	return flt(result[0][0]) if result else 0
+
+
+def sync_batch_order_status(batch_order_name, exclude_stock_entry=None):
+	if not batch_order_name or not frappe.db.exists("Batch Order s", batch_order_name):
+		return
+
+	filters = {"custom_batch_order_id": batch_order_name}
+	if exclude_stock_entry:
+		filters["name"] = ["!=", exclude_stock_entry]
+
+	submitted_stock_entry = frappe.db.exists(
+		"Stock Entry",
+		{**filters, "docstatus": 1},
+	)
+	if submitted_stock_entry:
+		status = "Complete"
+	else:
+		draft_stock_entry = frappe.db.exists(
+			"Stock Entry",
+			{**filters, "docstatus": 0},
+		)
+		status = "In Process" if draft_stock_entry else "Not Start"
+
+	frappe.db.set_value(
+		"Batch Order s",
+		batch_order_name,
+		"status",
+		status,
+		update_modified=False,
+	)
 
 
 @frappe.whitelist()

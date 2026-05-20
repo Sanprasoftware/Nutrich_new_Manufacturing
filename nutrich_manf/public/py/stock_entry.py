@@ -53,6 +53,7 @@ from erpnext.stock.utils import get_bin, get_incoming_rate
 from erpnext.stock.doctype.stock_entry.stock_entry import StockEntry
 from nutrich_manf.nutrich_manf.doctype.batch_order_s.batch_order_s import (
     get_stock_entry_raw_qty_for_batch_order,
+    sync_batch_order_status,
 )
 
 
@@ -67,6 +68,34 @@ class customStockEntry(StockEntry):
     def validate(self):
         super().validate()
         self.validate_batch_order_raw_qty()
+
+    def after_insert(self):
+        self.call_super_method("after_insert")
+        self.update_batch_order_status()
+
+    def on_submit(self):
+        self.call_super_method("on_submit")
+        self.update_batch_order_status()
+
+    def on_cancel(self):
+        self.call_super_method("on_cancel")
+        self.update_batch_order_status()
+
+    def on_trash(self):
+        self.call_super_method("on_trash")
+        self.update_batch_order_status(exclude_current_stock_entry=True)
+
+    def call_super_method(self, method_name):
+        super_method = getattr(super(), method_name, None)
+        if super_method:
+            super_method()
+
+    def update_batch_order_status(self, exclude_current_stock_entry=False):
+        if self.custom_batch_order_id:
+            sync_batch_order_status(
+                self.custom_batch_order_id,
+                exclude_stock_entry=self.name if exclude_current_stock_entry else None,
+            )
 
     def validate_batch_order_raw_qty(self):
         if not self.custom_batch_order_id:
