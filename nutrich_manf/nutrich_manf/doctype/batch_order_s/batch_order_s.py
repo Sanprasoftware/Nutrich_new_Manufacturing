@@ -207,7 +207,7 @@ class BatchOrders(Document):
 			self.process_order,
 			["name", "total_in_qty"],
 			as_dict=True,
-		)
+		) 
 		if not process_order:
 			return
 
@@ -547,7 +547,8 @@ def make_stock_entry(source_name, target_doc=None):
 		# Stock Entry defaults
 		target.stock_entry_type = "Manufacture"
 		target.purpose = "Manufacture"
-		# target.posting_date = source.date
+		target.posting_date = source.date
+		target.posting_time = source.time
 		target.custom_batch_order_id = source.name
 		target.naming_series = source.manufacturing_naming_series
 		ratio = remaining_qty / flt(source.total_raw_qty) if flt(source.total_raw_qty) else 0

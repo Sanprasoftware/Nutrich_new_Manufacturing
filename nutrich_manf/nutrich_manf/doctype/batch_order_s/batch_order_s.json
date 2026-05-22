@@ -12,6 +12,7 @@
   "process_order",
   "column_break_rfnh",
   "date",
+  "time",
   "process_order_qty",
   "status",
   "department",
@@ -322,6 +323,12 @@
    "label": "Cost Center",
    "options": "Cost Center",
    "reqd": 1
+  },
+  {
+   "default": "Now",
+   "fieldname": "time",
+   "fieldtype": "Time",
+   "label": "Time"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -332,7 +339,7 @@
    "link_fieldname": "custom_batch_order_id"
   }
  ],
- "modified": "2026-04-22 12:47:51.957615",
+ "modified": "2026-05-22 10:20:59.910215",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "Batch Order s",
