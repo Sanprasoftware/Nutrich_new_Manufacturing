@@ -18,7 +18,7 @@ frappe.ui.form.on("Batch Order s", {
                 method:
                     "nutrich_manf.nutrich_manf.doctype.batch_order_s.batch_order_s.make_stock_entry",
                 frm: frm,
-            }); 
+            });  
         };
  
         frappe.call({

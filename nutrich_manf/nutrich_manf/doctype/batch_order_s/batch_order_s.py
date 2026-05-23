@@ -82,12 +82,35 @@ class BatchOrders(Document):
 
 	def on_submit(self):
 		self.sync_process_order_progress()
+		self.validate_is_group_warehouse()
 
 	def on_cancel(self):
 		self.sync_process_order_progress()
 
 	def on_trash(self):
 		self.sync_process_order_progress()
+	
+	def validate_is_group_warehouse(self):
+		for row in self.process_definition_raw:
+			if row.warehouse:
+				warehouse_type = frappe.get_value("Warehouse", row.warehouse, "is_group")
+				# frappe.throw(str(warehouse_type))	
+				if warehouse_type == 1:
+					frappe.throw(_("Group node warehouse {0} in row {1} (Raw Material In (Batch)) is not allowed to select for transaction.").format(row.warehouse, row.idx))
+		
+		for row in self.process_definition_finish:
+			if row.warehouse:
+				warehouse_type = frappe.get_value("Warehouse", row.warehouse, "is_group")
+				# frappe.throw(str(warehouse_type))	
+				if warehouse_type == 1:
+					frappe.throw(_("Group node warehouse {0} in row {1} (Finish Items Out (Batch)) is not allowed to select for transaction.").format(row.warehouse, row.idx))
+		
+		for row in self.process_definition_scrap:
+			if row.warehouse:
+				warehouse_type = frappe.get_value("Warehouse", row.warehouse, "is_group")
+				# frappe.throw(str(warehouse_type))	
+				if warehouse_type == 1:
+					frappe.throw(_("Group node warehouse {0} in row {1} (Scrap Items Out (Batch)) is not allowed to select for transaction.").format(row.warehouse, row.idx))
 
 	@frappe.whitelist()
 	def create_in_subcontracting(self):
@@ -549,6 +572,7 @@ def make_stock_entry(source_name, target_doc=None):
 		target.purpose = "Manufacture"
 		target.posting_date = source.date
 		target.posting_time = source.time
+		target.set_posting_time = 1
 		target.custom_batch_order_id = source.name
 		target.naming_series = source.manufacturing_naming_series
 		ratio = remaining_qty / flt(source.total_raw_qty) if flt(source.total_raw_qty) else 0
@@ -663,6 +687,7 @@ def make_stock_entry(source_name, target_doc=None):
 		postprocess=postprocess,
 	)
 
+	
 
 def get_stock_entry_raw_qty_for_batch_order(batch_order_name, exclude_stock_entry=None):
 	if not batch_order_name:
@@ -729,3 +754,6 @@ def get_remaining_stock_entry_raw_qty(batch_order_name, exclude_stock_entry=None
 	batch_order_qty = frappe.db.get_value("Batch Order s", batch_order_name, "total_raw_qty")
 	used_qty = get_stock_entry_raw_qty_for_batch_order(batch_order_name, exclude_stock_entry)
 	return max(flt(batch_order_qty) - flt(used_qty), 0)
+
+
+
