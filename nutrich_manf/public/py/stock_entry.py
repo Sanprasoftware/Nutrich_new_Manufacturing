@@ -273,14 +273,15 @@ class customStockEntry(StockEntry):
 
 @frappe.whitelist()
 def calculate_difference(doc,method=None):
-    diff_qty1 = 0
-    diff_qty2 = 0
-    for row in doc.items:
-        if not row.is_finished_item and not row.is_legacy_scrap_item:
-            diff_qty1 += row.qty
-        if row.is_finished_item == 1 or row.is_legacy_scrap_item == 1:
-            diff_qty2 += row.qty 
-    doc.custom_difference_qty_nutrich = diff_qty1 - diff_qty2
+    if doc.custom_batch_order_id:
+        diff_qty1 = 0
+        diff_qty2 = 0
+        for row in doc.items:
+            if not row.is_finished_item and not row.is_legacy_scrap_item:
+                diff_qty1 += row.qty
+            if row.is_finished_item == 1 or row.is_legacy_scrap_item == 1:
+                diff_qty2 += row.qty 
+        doc.custom_difference_qty_nutrich = diff_qty1 - diff_qty2
 
 
 @frappe.whitelist()
