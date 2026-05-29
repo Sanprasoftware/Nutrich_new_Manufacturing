@@ -154,7 +154,8 @@ doc_events = {
             "nutrich_manf.public.py.stock_entry.calculate_difference",
             "nutrich_manf.public.py.stock_entry.set_cost_center",
             "nutrich_manf.public.py.stock_entry.calculate_amount",
-        ]
+        ],
+        "on_submit": "nutrich_manf.public.py.stock_entry.validate_value_difference",
     }
 }
 
