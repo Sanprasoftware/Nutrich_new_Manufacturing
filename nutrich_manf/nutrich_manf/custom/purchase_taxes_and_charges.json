@@ -5,9 +5,11 @@
    "_comments": null,
    "_liked_by": null,
    "_user_tags": null,
+   "alignment": "",
    "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
+   "button_color": "",
    "collapsible": 0,
    "collapsible_depends_on": null,
    "columns": 0,
@@ -68,6 +70,30 @@
  "custom_perms": [],
  "doctype": "Purchase Taxes and Charges",
  "links": [],
- "property_setters": [],
+ "property_setters": [
+  {
+   "_assign": null,
+   "_comments": null,
+   "_liked_by": null,
+   "_user_tags": null,
+   "creation": "2026-05-22 13:20:06.281597",
+   "default_value": null,
+   "doc_type": "Purchase Taxes and Charges",
+   "docstatus": 0,
+   "doctype_or_field": "DocField",
+   "field_name": "is_tax_withholding_account",
+   "idx": 0,
+   "is_system_generated": 0,
+   "modified": "2026-05-22 13:32:07.832414",
+   "modified_by": "Administrator",
+   "module": null,
+   "name": "Purchase Taxes and Charges-is_tax_withholding_account-read_only",
+   "owner": "Administrator",
+   "property": "read_only",
+   "property_type": "Check",
+   "row_name": null,
+   "value": "0"
+  }
+ ],
  "sync_on_migrate": 1
 }
