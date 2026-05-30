@@ -169,42 +169,42 @@ class customStockEntry(StockEntry):
         )
         self.value_difference = flt(self.total_additional_costs)
 
-    # def get_gl_entries(self, inventory_account_map):
-    #     gl_entries = super().get_gl_entries(inventory_account_map)
+    def get_gl_entries(self, inventory_account_map):
+        gl_entries = super().get_gl_entries(inventory_account_map)
 
-    #     if not (self.purpose == "Manufacture" and self.custom_batch_order_id and self.value_difference):
-    #         return gl_entries
+        if not (self.purpose == "Manufacture" and self.custom_batch_order_id and self.value_difference):
+            return gl_entries
 
-    #     stock_adjustment_accounts = {d.expense_account for d in self.get("items") if d.expense_account}
-    #     if not stock_adjustment_accounts:
-    #         return gl_entries
+        stock_adjustment_accounts = {d.expense_account for d in self.get("items") if d.expense_account}
+        if not stock_adjustment_accounts:
+            return gl_entries
 
-    #     stock_in_hand_account = frappe.get_cached_value("Company", self.company, "default_inventory_account")
-    #     if not stock_in_hand_account:
-    #         return gl_entries
+        stock_in_hand_account = frappe.get_cached_value("Company", self.company, "default_inventory_account")
+        if not stock_in_hand_account:
+            return gl_entries
 
-    #     filtered_gl_entries = []
-    #     stock_in_hand_entry = None
+        filtered_gl_entries = []
+        stock_in_hand_entry = None
 
-    #     for entry in gl_entries:
-    #         if entry.account in stock_adjustment_accounts:
-    #             continue
+        for entry in gl_entries:
+            if entry.account in stock_adjustment_accounts:
+                continue
 
-    #         if entry.account == stock_in_hand_account:
-    #             if not stock_in_hand_entry:
-    #                 stock_in_hand_entry = entry
-    #             continue
+            if entry.account == stock_in_hand_account:
+                if not stock_in_hand_entry:
+                    stock_in_hand_entry = entry
+                continue
 
-    #         filtered_gl_entries.append(entry)
+            filtered_gl_entries.append(entry)
 
-    #     if stock_in_hand_entry:
-    #         stock_in_hand_entry.debit = flt(self.value_difference) if self.value_difference > 0 else 0
-    #         stock_in_hand_entry.credit = abs(flt(self.value_difference)) if self.value_difference < 0 else 0
-    #         stock_in_hand_entry.debit_in_account_currency = stock_in_hand_entry.debit
-    #         stock_in_hand_entry.credit_in_account_currency = stock_in_hand_entry.credit
-    #         filtered_gl_entries.insert(0, stock_in_hand_entry)
+        if stock_in_hand_entry:
+            stock_in_hand_entry.debit = flt(self.value_difference) if self.value_difference > 0 else 0
+            stock_in_hand_entry.credit = abs(flt(self.value_difference)) if self.value_difference < 0 else 0
+            stock_in_hand_entry.debit_in_account_currency = stock_in_hand_entry.debit
+            stock_in_hand_entry.credit_in_account_currency = stock_in_hand_entry.credit
+            filtered_gl_entries.insert(0, stock_in_hand_entry)
 
-    #     return filtered_gl_entries
+        return filtered_gl_entries
 
     def validate_finished_goods(self):
         """

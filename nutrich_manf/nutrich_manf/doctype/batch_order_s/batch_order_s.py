@@ -558,9 +558,7 @@ def make_stock_entry(source_name, target_doc=None):
 		target.basic_rate = flt(target.basic_amount / flt(source.qty)) if flt(source.qty) else 0
 		target.additional_cost = flt(source.get("operation_cost"))
 		target.amount = flt(source.get("amount") or source.get("basic_value"))
-		target.valuation_rate = (
-			flt(source.get("valuation_rate") or target.amount / flt(source.qty)) if flt(source.qty) else 0
-		)
+		target.valuation_rate = flt(target.amount / flt(source.qty)) if flt(source.qty) else 0
 
 	def set_scrap_item_values(source, target, source_parent):
 		target.is_legacy_scrap_item = 1
