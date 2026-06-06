@@ -154,8 +154,39 @@ doc_events = {
             "nutrich_manf.public.py.stock_entry.calculate_difference",
             "nutrich_manf.public.py.stock_entry.set_cost_center",
             "nutrich_manf.public.py.stock_entry.calculate_amount",
+            "nutrich_manf.public.py.set_cost_center.set_cost_center",
         ],
         "on_submit": "nutrich_manf.public.py.stock_entry.validate_value_difference",
+    },
+    "Item": {
+        "before_save": "nutrich_manf.public.py.item.validate_item"
+    },
+    "Purchase Order": {
+        "before_save": "nutrich_manf.public.py.set_cost_center.set_cost_center"
+    },
+    "Purchase Receipt": {
+        "before_save": "nutrich_manf.public.py.set_cost_center.set_cost_center"
+    },
+    "Purchase Invoice": {
+        "before_save": "nutrich_manf.public.py.set_cost_center.set_cost_center"
+    },
+    "Sales Order": {
+        "before_save": "nutrich_manf.public.py.set_cost_center.set_cost_center"
+    },
+    "Delivery Note": {
+        "before_save": "nutrich_manf.public.py.set_cost_center.set_cost_center"
+    },
+    "Sales Invoice": {
+        "before_save": "nutrich_manf.public.py.set_cost_center.set_cost_center"
+    },
+    "Payment Entry": {
+        "before_save": "nutrich_manf.public.py.set_cost_center.set_cost_center_payment_entry"
+    },
+    "Journal Entry": {
+        "before_save": "nutrich_manf.public.py.set_cost_center.set_cost_center_journal_entry"
+    },
+    "Material Request": {
+        "before_save": "nutrich_manf.public.py.set_cost_center.set_material_request_cost_center"
     }
 }
 
