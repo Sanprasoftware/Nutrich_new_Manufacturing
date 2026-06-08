@@ -30,6 +30,9 @@
   {
    "fieldname": "process_type",
    "fieldtype": "Link",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Process Type",
    "options": "Process Type s"
   },
@@ -60,6 +63,9 @@
   {
    "fieldname": "item_code",
    "fieldtype": "Link",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Item Code",
    "options": "Item"
   },
@@ -87,7 +93,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-18 16:42:45.624542",
+ "modified": "2026-06-08 13:20:36.858998",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "Manufacturing Rate Chart s",
