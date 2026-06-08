@@ -42,10 +42,18 @@ class BatchOrders(Document):
 		self.update_per_kg_cost()
 		self.process_definition_finish_amount()
 		self.calculate_process_definition_scrap_amount()
+		self.validate_batch_qty()
 
 
 		self.calculate_total_out_qty_amount()
 		self.validate_process_order_batch_qty()
+	
+	def validate_batch_qty(self):
+		for row in self.process_definition_raw:
+			if row.item_code and row.batch:
+				batch_qty = frappe.db.get_value("Batch", row.batch, "batch_qty")
+				if batch_qty < row.qty:
+					frappe.throw(_("Batch {0} quantity {1} is less than required quantity {2} for item {3} in row {4} (Raw Material In (Batch)).").format(row.batch, batch_qty, row.qty, row.item_code, row.idx))
 
 	def _validate_batch_required(self):
 		missing = []
