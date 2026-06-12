@@ -48,6 +48,8 @@ doctype_js = {
     "Purchase Order": "public/js/purchase_order.js",
     "Sales Invoice": "public/js/sales_invoice.js",
     "Stock Entry": "public/js/stock_entry.js",
+    "Purchase Receipt": "public/js/purchase_receipt.js",
+    "Purchase Invoice": "public/js/purchase_invoice.js"
 }
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -193,6 +195,11 @@ doc_events = {
 # Scheduled Tasks
 # ---------------
 
+scheduler_events = {
+    "daily": [
+        "nutrich_manf.public.py.purchase_order.send_pending_delivery_reminders"
+    ]
+}
 # scheduler_events = {
 # 	"all": [
 # 		"nutrich_manf.tasks.all"

@@ -6,6 +6,36 @@ frappe.ui.form.on('Purchase Order', {
         frm.add_custom_button('Create Gate Pass', () => {
             create_gate_pass_from_reference(frm);
         });
+        frm.add_custom_button("Mail To Supplier", () => {
+            frm.call({
+                method: "nutrich_manf.public.py.purchase_order.send_mail_to_supplier",
+                args: {
+                    docname: frm.doc.name
+                },
+                callback: (r) => {
+                    if (r.message) {
+                        frappe.msgprint("Mail sent to supplier successfully.");
+                    } else {
+                        frappe.msgprint("Failed to send mail to supplier.");
+                    }
+                }
+            })
+        });
+        frm.add_custom_button("Mail To Broker", () => {
+            frm.call({
+                method: "nutrich_manf.public.py.purchase_order.send_mail_to_broker",
+                args: {
+                    docname: frm.doc.name
+                },
+                callback: (r) => {
+                    if (r.message) {
+                        frappe.msgprint("Mail sent to supplier successfully.");
+                    } else {
+                        frappe.msgprint("Failed to send mail to supplier.");
+                    }
+                }
+            })
+        })
     }
 });
 
