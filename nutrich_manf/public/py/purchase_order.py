@@ -63,10 +63,20 @@ def send_mail_to_supplier(docname):
     </p>
     """
 
+    attachments = [
+        frappe.attach_print(
+            "Purchase Order",
+            po.name,
+            file_name=po.name,
+            print_format="PURCHASE ORDER - DOMESTIC V 1.0"
+        )
+    ]
+
     frappe.sendmail(
         recipients=[supplier_email],
         subject=f"Purchase Order No. {po.name}",
         message=message,
+        attachments=attachments,
         reference_doctype="Purchase Order",
         reference_name=po.name,
         now=True
@@ -80,13 +90,14 @@ def send_mail_to_supplier(docname):
 def send_mail_to_broker(docname):
     po = frappe.get_doc("Purchase Order", docname)
 
-    broker_email = po.custom_broker_email  # Change field name as required
+    # broker_email = po.custom_broker_email  # Change field name as required
+    broker_email = frappe.db.get_value("Supplier Broker", po.custom_broker, "email")  # Change field name as required
 
     if not broker_email:
         frappe.throw("Broker Email is not specified.")
 
     message = f"""
-    <p>Dear {po.broker_name or 'Broker Name'},</p>
+    <p>Dear {po.custom_broker or 'Broker Name'},</p>
 
     <p>
     We have issued Purchase Order No. <b>{po.name}</b> dated <b>{po.transaction_date}</b>
@@ -110,7 +121,7 @@ def send_mail_to_broker(docname):
 
     <p>
     <b>Order details:</b> Rs. {po.grand_total},
-    Delivery at {po.shipping_address_name or ''} by {po.schedule_date or ''}
+    Delivery at {po.shipping_address or ''} by {po.schedule_date or ''}
     </p>
 
     <p>
@@ -128,7 +139,7 @@ def send_mail_to_broker(docname):
             "Purchase Order",
             po.name,
             file_name=po.name,
-            print_format="Standard"
+            print_format="PURCHASE ORDER - DOMESTIC V 1.0"
         )
     ]
 
@@ -261,10 +272,20 @@ def send_pending_delivery_reminders():
             </p>
             """
 
+            attachments = [
+                frappe.attach_print(
+                    "Purchase Order",
+                    po.name,
+                    file_name=po.name,
+                    print_format="PURCHASE ORDER - DOMESTIC V 1.0"
+                )
+            ]
+
             frappe.sendmail(
                 recipients=[supplier_email],
                 subject=f"Reminder: Pending Delivery of {total_pending_qty} Units Against PO No. {po.name}",
                 message=supplier_message,
+                attachments=attachments,
                 reference_doctype="Purchase Order",
                 reference_name=po.name,
                 now=True
@@ -274,12 +295,13 @@ def send_pending_delivery_reminders():
         # BROKER EMAIL
         # =====================================================
 
-        broker_email = po.custom_broker_email
+        # broker_email = po.custom_broker_email
+        broker_email = frappe.db.get_value("Supplier Broker", po.custom_broker, "email")
 
         if broker_email:
 
             broker_message = f"""
-            <p>Dear {po.custom_broker_name or 'Broker Name'},</p>
+            <p>Dear {po.custom_broker or 'Broker Name'},</p>
 
             <p>
             This is a reminder for the pending delivery against PO No. {po.name}
@@ -323,6 +345,7 @@ def send_pending_delivery_reminders():
                 recipients=[broker_email],
                 subject=f"Reminder: Expedite Pending Qty for PO No. {po.name} with {po.supplier}",
                 message=broker_message,
+                attachments=attachments,
                 reference_doctype="Purchase Order",
                 reference_name=po.name,
                 now=True

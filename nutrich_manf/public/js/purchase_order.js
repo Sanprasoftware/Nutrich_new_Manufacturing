@@ -29,9 +29,9 @@ frappe.ui.form.on('Purchase Order', {
                 },
                 callback: (r) => {
                     if (r.message) {
-                        frappe.msgprint("Mail sent to supplier successfully.");
+                        frappe.msgprint("Mail sent to brokers successfully.");
                     } else {
-                        frappe.msgprint("Failed to send mail to supplier.");
+                        frappe.msgprint("Failed to send mail to broker.");
                     }
                 }
             })

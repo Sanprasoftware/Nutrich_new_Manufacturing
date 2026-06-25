@@ -84,7 +84,7 @@
    "field_name": "is_tax_withholding_account",
    "idx": 0,
    "is_system_generated": 0,
-   "modified": "2026-05-22 13:32:07.832414",
+   "modified": "2026-06-25 10:13:19.150721",
    "modified_by": "Administrator",
    "module": null,
    "name": "Purchase Taxes and Charges-is_tax_withholding_account-read_only",
