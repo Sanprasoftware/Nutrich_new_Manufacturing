@@ -157,7 +157,7 @@ class ProcessOrders(Document):
 
 					# Get valuation rate from Stock Ledger Entry through Serial & Batch Bundle
 					sle_rate = frappe.db.sql("""
-						SELECT sle.valuation_rate
+						SELECT sle.incoming_rate
 						FROM `tabStock Ledger Entry` sle
 						INNER JOIN `tabSerial and Batch Entry` sbe
 							ON sbe.parent = sle.serial_and_batch_bundle
@@ -178,6 +178,7 @@ class ProcessOrders(Document):
 					), as_dict=True)
 
 					if sle_rate:
+						# frappe.throw(str(sle_rate))
 						val_rate = sle_rate[0].valuation_rate or 0.00
 
 					# Stock Reconciliation fallback
