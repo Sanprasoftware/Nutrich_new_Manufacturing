@@ -288,49 +288,162 @@ class BatchOrders(Document):
 
  
 	# Process Definition raw Child Table Calculations
+	# @frappe.whitelist()
+	# def process_defination_raw_amount(self):
+
+	# 	total_qty = 0
+	# 	total_amount = 0  
+
+	# 	for row in self.process_definition_raw: ##process_definition_raw
+	# 		manuf_rate = frappe.get_value("Manufacturing Rate Chart s", {"item_code": row.item_code, "process_type": self.process_type}, "rate") or 0.00
+	# 		if self.process_type and row.item_code:
+	# 			# frappe.throw(str(manuf_rate))
+	# 			row.manufacturing_rate  =  manuf_rate
+			
+	# 		# if row.item_code and row.warehouse:
+	# 		# 	val_rate = frappe.get_value("Bin", {"item_code": row.item_code, "warehouse": row.warehouse}, "valuation_rate") or 0.00
+	# 		# 	row.rate = val_rate
+	# 		if row.item_code and row.warehouse:
+	# 			val_rate = 0.00
+	# 			if row.batch:
+	# 				val_rate = frappe.get_value(
+	# 					"Stock Ledger Entry",
+	# 					{"item_code": row.item_code, "warehouse": row.warehouse, "batch_no": row.batch, "is_cancelled": 0},
+	# 					"valuation_rate",
+	# 					order_by="posting_date desc, posting_time desc, creation desc",
+	# 				) or 0.00
+	# 				if not val_rate:
+	# 					batch_ref = frappe.db.get_value("Batch", row.batch, ["reference_doctype", "reference_name"], as_dict=True)
+	# 					if batch_ref and batch_ref.reference_doctype == "Stock Reconciliation":
+	# 						val_rate = frappe.get_value(
+	# 							"Stock Reconciliation Item",
+	# 							{"parent": batch_ref.reference_name, "item_code": row.item_code, "warehouse": row.warehouse, "batch_no": row.batch},
+	# 							"valuation_rate",
+	# 						) or 0.00
+	# 			if not val_rate:
+	# 				val_rate = frappe.get_value("Bin", {"item_code": row.item_code, "warehouse": row.warehouse}, "valuation_rate") or 0.00
+	# 			row.rate = val_rate
+
+	# 		row.amount = flt((row.qty or 0) * (row.rate or 0), row.precision("amount"))
+	# 		total_qty += flt(row.qty)
+	# 		total_amount += flt(row.amount)
+
+	# 	self.total_raw_qty = flt(total_qty, self.precision("total_raw_qty"))
+	# 	self.total_raw_amount = flt(total_amount, self.precision("total_raw_amount"))
+	
 	@frappe.whitelist()
 	def process_defination_raw_amount(self):
 
 		total_qty = 0
-		total_amount = 0  
+		total_amount = 0
 
-		for row in self.process_definition_raw: ##process_definition_raw
-			manuf_rate = frappe.get_value("Manufacturing Rate Chart s", {"item_code": row.item_code, "process_type": self.process_type}, "rate") or 0.00
+		for row in self.process_definition_raw:
+
+			# Manufacturing Rate
 			if self.process_type and row.item_code:
-				# frappe.throw(str(manuf_rate))
-				row.manufacturing_rate  =  manuf_rate
-			
-			# if row.item_code and row.warehouse:
-			# 	val_rate = frappe.get_value("Bin", {"item_code": row.item_code, "warehouse": row.warehouse}, "valuation_rate") or 0.00
-			# 	row.rate = val_rate
+				manuf_rate = frappe.get_value(
+					"Manufacturing Rate Chart s",
+					{
+						"item_code": row.item_code,
+						"process_type": self.process_type
+					},
+					"rate"
+				) or 0.00
+
+				row.manufacturing_rate = manuf_rate
+
+			# Fetch Raw Material Rate
 			if row.item_code and row.warehouse:
+
 				val_rate = 0.00
+
+				# -----------------------------
+				# Batch Selected
+				# -----------------------------
 				if row.batch:
-					val_rate = frappe.get_value(
-						"Stock Ledger Entry",
-						{"item_code": row.item_code, "warehouse": row.warehouse, "batch_no": row.batch, "is_cancelled": 0},
-						"valuation_rate",
-						order_by="posting_date desc, posting_time desc, creation desc",
-					) or 0.00
+
+					# Get valuation rate using Serial & Batch Bundle
+					sle = frappe.db.sql("""
+						SELECT sle.valuation_rate
+						FROM `tabStock Ledger Entry` sle
+						INNER JOIN `tabSerial and Batch Entry` sbe
+							ON sbe.parent = sle.serial_and_batch_bundle
+						WHERE
+							sle.item_code = %s
+							AND sle.warehouse = %s
+							AND sbe.batch_no = %s
+							AND sle.is_cancelled = 0
+						ORDER BY
+							sle.posting_date DESC,
+							sle.posting_time DESC,
+							sle.creation DESC
+						LIMIT 1
+					""", (
+						row.item_code,
+						row.warehouse,
+						row.batch
+					), as_dict=True)
+
+					if sle:
+						val_rate = flt(sle[0].valuation_rate)
+
+					# Stock Reconciliation Fallback
 					if not val_rate:
-						batch_ref = frappe.db.get_value("Batch", row.batch, ["reference_doctype", "reference_name"], as_dict=True)
-						if batch_ref and batch_ref.reference_doctype == "Stock Reconciliation":
+						batch_ref = frappe.db.get_value(
+							"Batch",
+							row.batch,
+							["reference_doctype", "reference_name"],
+							as_dict=True
+						)
+
+						if (
+							batch_ref
+							and batch_ref.reference_doctype == "Stock Reconciliation"
+						):
 							val_rate = frappe.get_value(
 								"Stock Reconciliation Item",
-								{"parent": batch_ref.reference_name, "item_code": row.item_code, "warehouse": row.warehouse, "batch_no": row.batch},
-								"valuation_rate",
+								{
+									"parent": batch_ref.reference_name,
+									"item_code": row.item_code,
+									"warehouse": row.warehouse,
+									"batch_no": row.batch
+								},
+								"valuation_rate"
 							) or 0.00
-				if not val_rate:
-					val_rate = frappe.get_value("Bin", {"item_code": row.item_code, "warehouse": row.warehouse}, "valuation_rate") or 0.00
-				row.rate = val_rate
 
-			row.amount = flt((row.qty or 0) * (row.rate or 0), row.precision("amount"))
+				# -----------------------------
+				# Bin Fallback
+				# -----------------------------
+				if not val_rate:
+					val_rate = frappe.get_value(
+						"Bin",
+						{
+							"item_code": row.item_code,
+							"warehouse": row.warehouse
+						},
+						"valuation_rate"
+					) or 0.00
+
+				row.rate = flt(val_rate, row.precision("rate"))
+
+			# Calculate Amount
+			row.amount = flt(
+				(row.qty or 0) * (row.rate or 0),
+				row.precision("amount")
+			)
+
 			total_qty += flt(row.qty)
 			total_amount += flt(row.amount)
 
-		self.total_raw_qty = flt(total_qty, self.precision("total_raw_qty"))
-		self.total_raw_amount = flt(total_amount, self.precision("total_raw_amount"))
- 
+		self.total_raw_qty = flt(
+			total_qty,
+			self.precision("total_raw_qty")
+		)
+
+		self.total_raw_amount = flt(
+			total_amount,
+			self.precision("total_raw_amount")
+		)
 	
 	# Process Definition Cost Child Table Calculations------------------------------------------------------------------------------------
 	@frappe.whitelist()

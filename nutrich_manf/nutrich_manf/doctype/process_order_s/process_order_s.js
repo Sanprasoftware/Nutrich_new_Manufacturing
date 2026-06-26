@@ -47,7 +47,7 @@ frappe.ui.form.on("Process Order s", {
                     reference_doctype: frm.doctype,
                 },
             });
-        };
+        }; 
         frm.add_custom_button("Gate Pass", () => {
             frm.make_methods["Gate Pass s"]();
         }, __("Create")); 
