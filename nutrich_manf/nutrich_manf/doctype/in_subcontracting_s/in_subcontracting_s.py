@@ -91,7 +91,14 @@ class InSubcontractings(Document):
 	
 	def create_stock_entry(self):
 		stock_entry = frappe.new_doc("Stock Entry")
+		stock_entry.naming_series = "MTR/.FY./.#"
 		stock_entry.stock_entry_type = "Sub Contracting In"
+		stock_entry.posting_date = self.posting_date
+		stock_entry.posting_time = self.posting_time
+		stock_entry.company = self.company
+		stock_entry.cost_center = self.cost_center
+		stock_entry.from_warehouse = self.source_warehouse
+		stock_entry.to_warehouse = self.target_warehouse
 		stock_entry.custom_in_subcontracting_id = self.name
 		
 		# for row in self.in_raw_material:
@@ -104,20 +111,23 @@ class InSubcontractings(Document):
 		# 		"basic_amount": row.amount,
 		# 		"batch_no": row.batch_no,
 		# 	})
-		for row in self.finish_items:
+		for row in self.finish_items or []:
 			stock_entry.append("items", {
-				# "t_warehouse": row.warehouse,
 				"s_warehouse": self.source_warehouse,
 				"t_warehouse": self.target_warehouse,
-				"item_code": row.item_code ,
+				"item_code": row.item_code,
 				"item_name": row.item_name,
 				"qty": row.qty,
-				"basic_rate": row.rate,
+				"basic_rate": row.rate or row.valuation_rate,
 				"basic_amount": row.amount,
 				"batch_no": row.batch,
-				"set_basic_rate_manually": 1
+				"conversion_factor": 1,
+				"cost_center": self.cost_center,
+				"set_basic_rate_manually": 1,
 			})
-		stock_entry.save()
+
+		stock_entry.insert()
+		stock_entry.submit()
 
 
 def get_in_subcontracting_qty_for_batch_order(batch_order, exclude_in_subcontracting=None):

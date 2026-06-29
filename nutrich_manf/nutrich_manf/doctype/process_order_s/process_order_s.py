@@ -179,7 +179,7 @@ class ProcessOrders(Document):
 
 					if sle_rate:
 						# frappe.throw(str(sle_rate))
-						val_rate = sle_rate[0].valuation_rate or 0.00
+						val_rate = sle_rate[0].incoming_rate or 0.00
 
 					# Stock Reconciliation fallback
 					if not val_rate:

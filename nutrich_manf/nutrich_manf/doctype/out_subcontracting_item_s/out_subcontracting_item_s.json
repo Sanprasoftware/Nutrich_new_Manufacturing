@@ -103,7 +103,8 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Target Warehouse",
-   "options": "Warehouse"
+   "options": "Warehouse",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,

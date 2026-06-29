@@ -77,22 +77,30 @@ class OutSubcontractings(Document):
 		stock_entry.stock_entry_type = "Sub Contracting Out"
 		stock_entry.posting_date = self.posting_date
 		stock_entry.posting_time = self.posting_time
-		stock_entry.custom_out_subcontracting_id = self.name
+		stock_entry.company = self.company
 		stock_entry.cost_center = self.cost_center
-		# stock_entry.from_warehouse = self.from_warehouse
-		# stock_entry.to_warehouse = self.to_warehouse
-		for item in self.items:
+		stock_entry.custom_out_subcontracting_id = self.name
+
+		for idx, item in enumerate(self.items or [], start=1):
+			if not item.source_warehouse or not item.target_warehouse:
+				frappe.throw(
+					_("Source and Target Warehouse are mandatory for Out Subcontracting row {0}.").format(idx)
+				)
+
 			stock_entry.append("items", {
 				"item_code": item.item,
 				"qty": item.quantity,
 				"uom": item.uom,
-				"basic_rate": item.rate, 
+				"basic_rate": item.rate,
+				"basic_amount": flt(item.quantity) * flt(item.rate),
 				"batch_no": item.batch_no,
-				"conversion_factor": "1",
+				"conversion_factor": 1,
 				"s_warehouse": item.source_warehouse,
-				"t_warehouse": item.target_warehouse
+				"t_warehouse": item.target_warehouse,
+				"cost_center": self.cost_center,
 			})
-		stock_entry.save()				
+
+		stock_entry.insert()
 		stock_entry.submit()
 
 	def set_per_received(self):
