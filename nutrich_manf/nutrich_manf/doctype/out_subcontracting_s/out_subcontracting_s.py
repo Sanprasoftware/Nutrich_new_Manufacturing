@@ -5,6 +5,7 @@ import frappe
 from frappe.utils import flt
 from frappe.model.document import Document
 from frappe import _
+from erpnext.stock.doctype.batch.batch import get_batch_qty
 
 
 
@@ -12,6 +13,7 @@ class OutSubcontractings(Document):
 	def validate(self):
 		self._calculate_totals()
 		self.validate_process_order_qty()
+		self.validate_batch_availability()
 		self.set_per_received()
 
 	def on_submit(self):
@@ -71,6 +73,38 @@ class OutSubcontractings(Document):
 				)
 			)
 	
+	def validate_batch_availability(self):
+		for idx, item in enumerate(self.items or [], start=1):
+			if not item.batch_no:
+				continue
+
+			if not item.source_warehouse:
+				continue
+
+			available_qty = get_batch_qty(
+				batch_no=item.batch_no,
+				warehouse=item.source_warehouse,
+				item_code=item.item,
+				posting_date=self.posting_date,
+				posting_time=self.posting_time,
+			)
+			required_qty = flt(item.quantity)
+
+			if flt(available_qty) < required_qty:
+				frappe.throw(
+					_(
+						"Batch stock is not available for Out Subcontracting row {0}. "
+						"Item {1}, Batch {2}, Warehouse {3}: Available Qty is {4}, Required Qty is {5}."
+					).format(
+						idx,
+						item.item,
+						item.batch_no,
+						item.source_warehouse,
+						flt(available_qty, self.precision("total_quantity")),
+						flt(required_qty, self.precision("total_quantity")),
+					)
+				)
+
 	def create_stock_entry(self):
 		stock_entry = frappe.new_doc("Stock Entry")
 		stock_entry.naming_series = "MTR/.FY./.#"

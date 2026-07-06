@@ -205,27 +205,67 @@ class BatchOrders(Document):
 		if self.difference_amount != self.total_cost or self.difference_amount !=0:
 			frappe.throw("Difference Amount must be equal to Total Cost or Zero")
 
+	# def validate_process_order_batch_qty(self):
+	# 	if not self.process_order:
+	# 		return
+
+	# 	process_order_qty = frappe.db.get_value("Process Order s", self.process_order, "total_raw_qty")
+	# 	if process_order_qty is None:
+	# 		return
+
+	# 	used_qty = get_batch_order_qty_for_process(self.process_order, self.name)
+	# 	remaining_qty = flt(process_order_qty) - flt(used_qty)
+	# 	batch_qty = flt(self.total_raw_qty)
+
+	# 	if batch_qty > remaining_qty:
+	# 		frappe.throw(
+	# 			_(
+	# 				"Remaining quantity for Process Order {0} is {1}. "
+	# 				"Batch Order quantity cannot be {2}."
+	# 			).format(
+	# 				self.process_order,
+	# 				flt(max(remaining_qty, 0), self.precision("total_raw_qty")),
+	# 				flt(batch_qty, self.precision("total_raw_qty")),
+	# 			)
+	# 		)
+
 	def validate_process_order_batch_qty(self):
 		if not self.process_order:
 			return
 
-		process_order_qty = frappe.db.get_value("Process Order s", self.process_order, "total_raw_qty")
+		process_order_qty = frappe.db.get_value(
+			"Process Order s",
+			self.process_order,
+			"total_raw_qty"
+		)
+
 		if process_order_qty is None:
 			return
 
-		used_qty = get_batch_order_qty_for_process(self.process_order, self.name)
-		remaining_qty = flt(process_order_qty) - flt(used_qty)
-		batch_qty = flt(self.total_raw_qty)
+		used_qty = get_batch_order_qty_for_process(
+			self.process_order,
+			self.name
+		)
 
-		if batch_qty > remaining_qty:
+		precision = self.precision("total_raw_qty") or 3
+
+		process_order_qty = flt(process_order_qty, precision)
+		used_qty = flt(used_qty, precision)
+		batch_qty = flt(self.total_raw_qty, precision)
+
+		# Round remaining quantity to the same precision
+		remaining_qty = flt(process_order_qty - used_qty, precision)
+
+		# Allow tiny floating point differences
+		if batch_qty - remaining_qty > (1 / (10 ** precision)):
 			frappe.throw(
 				_(
 					"Remaining quantity for Process Order {0} is {1}. "
 					"Batch Order quantity cannot be {2}."
 				).format(
 					self.process_order,
-					flt(max(remaining_qty, 0), self.precision("total_raw_qty")),
-					flt(batch_qty, self.precision("total_raw_qty")),
+					remaining_qty,
+					batch_qty,
 				)
 			)
 
