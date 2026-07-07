@@ -11,6 +11,7 @@ from frappe.desk.query_report import generate_report_result as get_report
 from frappe.model.mapper import get_mapped_doc
 from frappe.utils import flt 
 from frappe import _
+from erpnext.stock.doctype.batch.batch import get_batch_qty
 from nutrich_manf.nutrich_manf.doctype.process_order_s.process_order_s import (
 	get_batch_order_qty_for_process,
 )
@@ -91,6 +92,7 @@ class BatchOrders(Document):
 	def on_submit(self):
 		self.sync_process_order_progress()
 		self.validate_is_group_warehouse()
+		self.validate_raw_material_stock_availability()
 
 	def on_cancel(self):
 		self.sync_process_order_progress()
@@ -119,6 +121,61 @@ class BatchOrders(Document):
 				# frappe.throw(str(warehouse_type))	
 				if warehouse_type == 1:
 					frappe.throw(_("Group node warehouse {0} in row {1} (Scrap Items Out (Batch)) is not allowed to select for transaction.").format(row.warehouse, row.idx))
+
+	def validate_raw_material_stock_availability(self):
+		required_qty_map = {}
+		row_map = {}
+
+		for row in self.process_definition_raw or []:
+			if not row.item_code or not row.warehouse:
+				continue
+
+			key = (row.item_code, row.warehouse, row.batch or "")
+			required_qty_map[key] = flt(required_qty_map.get(key)) + flt(row.qty)
+			row_map.setdefault(key, []).append(str(row.idx))
+
+		shortages = []
+		precision = self.precision("total_raw_qty") or 3
+
+		for (item_code, warehouse, batch), required_qty in required_qty_map.items():
+			if batch:
+				available_qty = get_batch_qty(
+					batch_no=batch,
+					warehouse=warehouse,
+					item_code=item_code,
+					posting_date=self.date,
+					posting_time=self.time or nowtime(),
+				)
+			else:
+				available_qty = frappe.db.get_value(
+					"Bin",
+					{
+						"item_code": item_code,
+						"warehouse": warehouse,
+					},
+					"actual_qty",
+				) or 0
+
+			if flt(available_qty, precision) < flt(required_qty, precision):
+				shortages.append(
+					_(
+						"Rows {0}: Item {1}, Warehouse {2}{3} - Available Qty is {4}, Required Qty is {5}."
+					).format(
+						", ".join(row_map.get((item_code, warehouse, batch), [])),
+						item_code,
+						warehouse,
+						_(", Batch {0}").format(batch) if batch else "",
+						flt(available_qty, precision),
+						flt(required_qty, precision),
+					)
+				)
+
+		if shortages:
+			frappe.throw(
+				_("Raw material stock is not available for Batch Order:<br>{0}").format(
+					"<br>".join(shortages)
+				)
+			)
 
 	@frappe.whitelist()
 	def create_in_subcontracting(self):
@@ -206,7 +263,7 @@ class BatchOrders(Document):
 			frappe.throw("Difference Amount must be equal to Total Cost or Zero")
 
 	# def validate_process_order_batch_qty(self):
-	# 	if not self.process_order:
+	# 	if not self.process_order: 
 	# 		return
 
 	# 	process_order_qty = frappe.db.get_value("Process Order s", self.process_order, "total_raw_qty")
