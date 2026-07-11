@@ -1,36 +1,57 @@
 # Copyright (c) 2026, Sanpra and contributors
 # For license information, please see license.txt
 
-from collections import defaultdict
-
 import frappe
 from frappe import _
 from frappe.utils import flt
 from frappe.utils.data import getdate
 
+from erpnext.accounts.report.financial_statements import get_cost_centers_with_children
+
+
+DIVISION_TRANSFER_ACCOUNTS = [
+	"CASHEW  DIVISION - NFPL",
+	"EXPORT DIVISION - NFPL",
+	"MAIN DIVISION - NFPL",
+	"WHOLESALE DIVISION - NFPL",
+	"TRADING DIVISION - NFPL",
+	"RETAIL DIVISION",
+	"WHOLESALE DIVISION - NFPL",
+]
+
+CREDIT_BALANCE_ROOTS = {"Liability", "Equity", "Income"}
+
 
 def execute(filters: dict | None = None):
 	filters = frappe._dict(filters or {})
 	validate_filters(filters)
-
-	opening = get_opening(filters)
-	transfers = get_transfers(filters)
-	cost_centers = get_cost_centers(opening, transfers)
-	columns = get_columns(filters, cost_centers)
-	data = get_data(opening, transfers, cost_centers, filters.cost_center)
-
+	accounts = get_division_transfer_accounts(filters.company)
+	balances = get_cost_center_balances(filters, accounts)
+	cost_centers = get_report_cost_centers(filters, balances)
+	columns = get_columns(cost_centers)
+	data = get_data(accounts, balances, cost_centers)
 	return columns, data
 
 
 def validate_filters(filters: frappe._dict):
 	if not filters.company:
 		frappe.throw(_("Company is required"))
-	if not filters.from_date:
-		frappe.throw(_("From Date is required"))
-	if not filters.to_date:
-		frappe.throw(_("To Date is required"))
+	if not filters.fiscal_year:
+		frappe.throw(_("Fiscal Year is required"))
+
+	year_dates = frappe.db.get_value(
+		"Fiscal Year",
+		filters.fiscal_year,
+		["year_start_date", "year_end_date"],
+		as_dict=True,
+	)
+	if not year_dates:
+		frappe.throw(_("Invalid Fiscal Year"))
+
+	filters.from_date = year_dates.year_start_date
+	filters.to_date = year_dates.year_end_date
 	if getdate(filters.from_date) > getdate(filters.to_date):
-		frappe.throw(_("From Date cannot be after To Date"))
+		frappe.throw(_("Fiscal Year start date cannot be after end date"))
 
 
 def col(label, fieldname, fieldtype="Currency", options=None, width=130):
@@ -40,156 +61,117 @@ def col(label, fieldname, fieldtype="Currency", options=None, width=130):
 	return column
 
 
-def get_columns(filters: frappe._dict, cost_centers: list[str]) -> list[dict]:
-	opening_label = filters.fiscal_year or _("Opening")
-	columns = [
-		col("Account", "cost_center", "Link", "Cost Center", 220),
-		col(opening_label, "opening", width=140),
-	]
-
+def get_columns(cost_centers: list[str]) -> list[dict]:
+	columns = [col("Account", "account", "Link", "Account", 260)]
 	for cost_center in cost_centers:
-		columns.append(col(cost_center, fieldname_for(cost_center), width=150))
-
-	columns.extend(
-		[
-			col("All Total", "all_total", width=140),
-			col("Diff.", "diff", width=140),
-		]
-	)
+		columns.append(col(cost_center, fieldname_for(cost_center), "Currency", width=160))
+	columns.append(col("Total", "total", "Currency", width=160))
 	return columns
 
 
-def get_data(
-	opening: dict[str, float],
-	transfers: dict[str, dict[str, float]],
-	cost_centers: list[str],
-	filter_cost_center: str | None = None,
-) -> list[dict]:
-	row_cost_centers = sorted(set(opening) | set(transfers))
-	if filter_cost_center:
-		row_cost_centers = [cost_center for cost_center in row_cost_centers if cost_center == filter_cost_center]
-
+def get_data(accounts: list[frappe._dict], balances: dict[str, dict[str, float]], cost_centers: list[str]) -> list[dict]:
 	data = []
 
-	for row_cost_center in row_cost_centers:
-		row = {
-			"cost_center": row_cost_center,
-			"opening": flt(opening.get(row_cost_center)),
-		}
+	for account in accounts:
+		row = {"account": account.name or account.label}
+		total = 0
 
-		all_total = 0
-		for column_cost_center in cost_centers:
-			amount = flt(transfers.get(row_cost_center, {}).get(column_cost_center))
-			row[fieldname_for(column_cost_center)] = amount
-			all_total += amount
+		for cost_center in cost_centers:
+			amount = flt(balances.get(account.name, {}).get(cost_center))
+			if account.root_type in CREDIT_BALANCE_ROOTS:
+				amount *= -1
 
-		row["all_total"] = all_total
-		row["diff"] = row["opening"] + all_total
+			row[fieldname_for(cost_center)] = amount
+			total += amount
+
+		row["total"] = total
 		data.append(row)
 
 	return data
 
 
-def get_opening(filters: frappe._dict) -> dict[str, float]:
-	conditions, values = get_conditions(filters, before_from_date=True)
-	rows = frappe.db.sql(
-		f"""
-		SELECT cost_center, SUM(debit - credit) AS amount
-		FROM `tabGL Entry`
-		WHERE {conditions}
-		GROUP BY cost_center
-		HAVING ABS(amount) > 0.000001
-		""",
-		values,
-		as_dict=True,
+def get_division_transfer_accounts(company: str) -> list[frappe._dict]:
+	account_rows = frappe.db.get_all(
+		"Account",
+		filters={"company": company},
+		fields=["name", "account_name", "root_type", "lft", "rgt"],
 	)
-	return {row.cost_center: flt(row.amount) for row in rows if row.cost_center}
+	by_name = {row.name: row for row in account_rows}
+	by_account_name = {row.account_name: row for row in account_rows}
+	company_abbr = frappe.get_cached_value("Company", company, "abbr")
+
+	accounts = []
+	for label in DIVISION_TRANSFER_ACCOUNTS:
+		account = by_name.get(label) or by_account_name.get(label)
+
+		if not account and company_abbr and not label.endswith(f" - {company_abbr}"):
+			account = by_name.get(f"{label} - {company_abbr}") or by_account_name.get(label)
+
+		if account:
+			accounts.append(frappe._dict(account))
+		else:
+			accounts.append(frappe._dict({"name": label, "label": label, "root_type": None}))
+
+	return accounts
 
 
-def get_transfers(filters: frappe._dict) -> dict[str, dict[str, float]]:
-	conditions, values = get_conditions(filters)
-	rows = frappe.db.sql(
-		f"""
-		SELECT voucher_type, voucher_no, cost_center, SUM(debit - credit) AS amount
-		FROM `tabGL Entry`
-		WHERE {conditions}
-		GROUP BY voucher_type, voucher_no, cost_center
-		HAVING ABS(amount) > 0.000001
-		ORDER BY voucher_type, voucher_no, cost_center
-		""",
-		values,
-		as_dict=True,
-	)
-
-	groups = defaultdict(list)
-	for row in rows:
-		if row.cost_center:
-			groups[(row.voucher_type, row.voucher_no)].append(row)
-
-	transfers = defaultdict(lambda: defaultdict(float))
-	for group_rows in groups.values():
-		apply_transfer_group(group_rows, transfers)
-
-	return transfers
 
 
-def apply_transfer_group(rows: list[dict], transfers: dict[str, dict[str, float]]):
-	debits = [row for row in rows if flt(row.amount) > 0]
-	credits = [row for row in rows if flt(row.amount) < 0]
+def get_report_cost_centers(filters: frappe._dict, balances: dict[str, dict[str, float]]) -> list[str]:
+	if filters.get("cost_center"):
+		return sorted(get_cost_centers_with_children(filters.cost_center))
 
-	if not debits or not credits:
-		return
-
-	total_debit = sum(flt(row.amount) for row in debits)
-	total_credit = sum(abs(flt(row.amount)) for row in credits)
-	transfer_amount = min(total_debit, total_credit)
-
-	if not transfer_amount:
-		return
-
-	for debit_row in debits:
-		debit_share = flt(debit_row.amount) / total_debit
-		for credit_row in credits:
-			credit_share = abs(flt(credit_row.amount)) / total_credit
-			amount = transfer_amount * debit_share * credit_share
-			if debit_row.cost_center == credit_row.cost_center:
-				continue
-
-			transfers[debit_row.cost_center][credit_row.cost_center] += amount
-			transfers[credit_row.cost_center][debit_row.cost_center] -= amount
+	cost_centers = set()
+	for account_balances in balances.values():
+		cost_centers.update(cost_center for cost_center, amount in account_balances.items() if flt(amount))
+	return sorted(cost_centers)
 
 
-def get_conditions(filters: frappe._dict, before_from_date: bool = False) -> tuple[str, dict]:
+def get_cost_center_balances(
+	filters: frappe._dict, accounts: list[frappe._dict]
+) -> dict[str, dict[str, float]]:
+	balances = {}
+	for account in accounts:
+		balances[account.name] = get_account_cost_center_balances(filters, account)
+	return balances
+
+
+def get_account_cost_center_balances(filters: frappe._dict, account: frappe._dict) -> dict[str, float]:
+	if not account.name or account.get("lft") is None or account.get("rgt") is None:
+		return {}
+
 	conditions = [
-		"company = %(company)s",
-		"is_cancelled = 0",
-		"cost_center IS NOT NULL",
-		"cost_center != ''",
+		"gle.company = %(company)s",
+		"gle.is_cancelled = 0",
+		"gle.posting_date <= %(to_date)s",
+		"IFNULL(gle.cost_center, '') != ''",
+		"acc.lft >= %(lft)s",
+		"acc.rgt <= %(rgt)s",
 	]
 	values = {
 		"company": filters.company,
-		"from_date": filters.from_date,
 		"to_date": filters.to_date,
-		"account": filters.account,
+		"lft": account.lft,
+		"rgt": account.rgt,
 	}
 
-	if before_from_date:
-		conditions.append("posting_date < %(from_date)s")
-	else:
-		conditions.append("posting_date BETWEEN %(from_date)s AND %(to_date)s")
+	if filters.get("cost_center"):
+		cost_centers = get_cost_centers_with_children(filters.cost_center)
+		conditions.append("gle.cost_center IN %(cost_centers)s")
+		values["cost_centers"] = tuple(cost_centers)
 
-	if filters.account:
-		conditions.append("account = %(account)s")
-
-	return " AND ".join(conditions), values 
-
-
-def get_cost_centers(opening: dict[str, float], transfers: dict[str, dict[str, float]]) -> list[str]:
-	cost_centers = set(opening)
-	for row_cost_center, row_transfers in transfers.items():
-		cost_centers.add(row_cost_center)
-		cost_centers.update(row_transfers)
-	return sorted(cost_centers)
+	rows = frappe.db.sql(
+		f"""
+		SELECT gle.cost_center, SUM(gle.debit - gle.credit) AS amount
+		FROM `tabGL Entry` gle
+		INNER JOIN `tabAccount` acc ON acc.name = gle.account
+		WHERE {" AND ".join(conditions)}
+		GROUP BY gle.cost_center
+		""",
+		values,
+		as_dict=True,
+	)
+	return {row.cost_center: flt(row.amount) for row in rows}
 
 
 def fieldname_for(cost_center: str) -> str:

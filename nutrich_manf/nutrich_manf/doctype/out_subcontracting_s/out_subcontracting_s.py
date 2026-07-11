@@ -135,6 +135,15 @@ class OutSubcontractings(Document):
 			})
 
 		stock_entry.insert()
+		stock_entry.make_bundle_using_old_serial_batch_fields()
+
+		# ERPNext converts the legacy serial/batch fields into a Serial and Batch
+		# Bundle. Do not submit both representations together.
+		for row in stock_entry.items:
+			if row.serial_and_batch_bundle:
+				row.serial_no = None
+				row.batch_no = None
+
 		stock_entry.submit()
 
 	def set_per_received(self):
