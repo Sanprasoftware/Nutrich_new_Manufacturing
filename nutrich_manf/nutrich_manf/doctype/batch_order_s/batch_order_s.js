@@ -10,8 +10,9 @@ frappe.ui.form.on("Batch Order s", {
         }) 
     },  
     refresh(frm) {
-        if (frm.is_new()) return;
-
+        if (frm.doc.docstatus !== 1) {
+            return;
+        }
         frm.make_methods = frm.make_methods || {};
         frm.make_methods["Stock Entry"] = () => {
             frappe.model.open_mapped_doc({

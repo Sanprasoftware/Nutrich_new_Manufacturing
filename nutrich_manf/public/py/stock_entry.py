@@ -62,6 +62,10 @@ class FinishedGoodError(frappe.ValidationError):
 
 class customStockEntry(StockEntry):
 
+    def before_validate(self):
+        self.restore_out_subcontracting_batch_details()
+        super().before_validate()
+
     def is_batch_order_manufacture(self):
         return self.purpose == "Manufacture" and self.custom_batch_order_id
 
@@ -120,6 +124,50 @@ class customStockEntry(StockEntry):
                     flt(current_raw_qty, self.precision("fg_completed_qty")),
                 )
             )
+
+    def restore_out_subcontracting_batch_details(self):
+        """Keep batch data when an older child-table layout omits bundle fields."""
+        if not self.get("custom_out_subcontracting_id"):
+            return
+
+        source_rows = frappe.get_all(
+            "Out Subcontracting Item s",
+            filters={
+                "parent": self.custom_out_subcontracting_id,
+                "parenttype": "Out Subcontracting s",
+                "parentfield": "items",
+            },
+            fields=["item", "quantity", "batch_no", "source_warehouse", "target_warehouse"],
+            order_by="idx asc",
+        )
+        rows_by_key = defaultdict(list)
+        for source_row in source_rows:
+            key = (
+                source_row.item,
+                source_row.source_warehouse,
+                source_row.target_warehouse,
+                flt(source_row.quantity),
+            )
+            rows_by_key[key].append(source_row)
+
+        for row in self.items or []:
+            if not row.serial_and_batch_bundle and not self.is_new() and row.name:
+                row.serial_and_batch_bundle = frappe.db.get_value(
+                    "Stock Entry Detail", row.name, "serial_and_batch_bundle"
+                )
+
+            if row.serial_and_batch_bundle:
+                continue
+
+            key = (row.item_code, row.s_warehouse, row.t_warehouse, flt(row.qty))
+            matches = rows_by_key.get(key)
+            if not matches:
+                continue
+
+            source_row = matches.pop(0)
+            if source_row.batch_no:
+                row.batch_no = source_row.batch_no
+                row.use_serial_batch_fields = 1
 
     def calculate_rate_and_amount(self, reset_outgoing_rate=True, raise_error_if_no_rate=True):
         if not self.is_batch_order_manufacture():

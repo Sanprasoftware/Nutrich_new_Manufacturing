@@ -18,6 +18,7 @@
   "column_break_frre",
   "company",
   "batch_order",
+  "old_document_no",
   "section_break_kddz",
   "source_warehouse",
   "column_break_cfag",
@@ -232,13 +233,18 @@
   {
    "fieldname": "column_break_cfag",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "old_document_no",
+   "fieldtype": "Data",
+   "label": "Old Document No"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-13 12:32:26.563222",
+ "modified": "2026-07-13 10:28:52.564035",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "In Subcontracting s",

@@ -15,6 +15,7 @@
   "posting_date",
   "posting_time",
   "cost_center",
+  "old_document_no",
   "column_break_bhva",
   "company",
   "subcontracting_items_section",
@@ -354,6 +355,11 @@
    "fieldtype": "Select",
    "label": "GST Vehicle Type",
    "options": "\nRegular\nOver Dimensional Cargo (ODC)"
+  },
+  {
+   "fieldname": "old_document_no",
+   "fieldtype": "Data",
+   "label": "Old Document No"
   }
  ],
  "grid_page_length": 50,
@@ -365,7 +371,7 @@
    "link_fieldname": "custom_out_subcontracting_id"
   }
  ],
- "modified": "2026-04-11 11:58:25.258783",
+ "modified": "2026-07-13 10:28:50.815007",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "Out Subcontracting s",

@@ -114,6 +114,8 @@ class OutSubcontractings(Document):
 		stock_entry.company = self.company
 		stock_entry.cost_center = self.cost_center
 		stock_entry.custom_out_subcontracting_id = self.name
+		stock_entry.bill_from_address = self.company_address
+		stock_entry.bill_to_address = self.supplier_address
 
 		for idx, item in enumerate(self.items or [], start=1):
 			if not item.source_warehouse or not item.target_warehouse:
@@ -135,15 +137,6 @@ class OutSubcontractings(Document):
 			})
 
 		stock_entry.insert()
-		stock_entry.make_bundle_using_old_serial_batch_fields()
-
-		# ERPNext converts the legacy serial/batch fields into a Serial and Batch
-		# Bundle. Do not submit both representations together.
-		for row in stock_entry.items:
-			if row.serial_and_batch_bundle:
-				row.serial_no = None
-				row.batch_no = None
-
 		stock_entry.submit()
 
 	def set_per_received(self):
