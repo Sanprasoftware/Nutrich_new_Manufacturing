@@ -791,6 +791,7 @@ def make_stock_entry(source_name, target_doc=None):
 		target.set_posting_time = 1
 		target.custom_batch_order_id = source.name
 		target.custom_process_order_id = source.process_order
+		target.custom_process_definition_id = source.process_definition
 		target.naming_series = source.manufacturing_naming_series
 		ratio = remaining_qty / flt(source.total_raw_qty) if flt(source.total_raw_qty) else 0
 

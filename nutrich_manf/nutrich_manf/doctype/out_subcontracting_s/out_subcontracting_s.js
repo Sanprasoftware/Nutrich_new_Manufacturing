@@ -61,6 +61,19 @@ frappe.ui.form.on("Out Subcontracting s", {
 	company_address(frm) {
 		set_company_address_display_and_gstin(frm);
 	},
+	onload(frm) {
+		frm.set_query("batch_no", "items", function(doc, cdt, cdn) {
+            const row = locals[cdt][cdn];
+            if (!row.item) {
+              return { filters: { name: "" } }; // no item selected
+            }
+            return {    
+              filters: {
+                item: row.item
+              }
+            };
+        });
+	}
  
 });
 
