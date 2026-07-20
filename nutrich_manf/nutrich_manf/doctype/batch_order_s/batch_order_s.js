@@ -7,7 +7,7 @@ frappe.ui.form.on("Batch Order s", {
                 console.log(r)
                 frm.refresh_fields();
             }
-        }) process_definition_raw
+        })
     },  
     refresh(frm) {
         if (frm.doc.docstatus !== 1) {
