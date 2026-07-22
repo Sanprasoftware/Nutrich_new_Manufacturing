@@ -97,14 +97,16 @@ def get_data(filters: frappe._dict) -> list[dict]:
 		as_dict=True,
 	)
 
+	data = []
 	previous_batch_order_id = None
-	previous_process_order_id = None
 	previous_stock_entry_id = None
 
 	for row in rows:
 		batch_order_id = row.batch_order_id
-		process_order_id = row.process_order_id
 		stock_entry_id = row.stock_entry_id
+
+		if previous_batch_order_id is not None and batch_order_id != previous_batch_order_id:
+			data.append({})
 
 		row.stock_in_qty = flt(row.stock_in_qty)
 		row.stock_in_rate = flt(row.stock_in_rate)
@@ -126,22 +128,11 @@ def get_data(filters: frappe._dict) -> list[dict]:
 		row.process_cost = process_cost if is_first_stock_entry_row else None
 		row.per_kg_process_cost = flt(process_cost / total_stock_in_qty) if is_first_stock_entry_row and total_stock_in_qty else None
 
-		if batch_order_id == previous_batch_order_id:
-			row.batch_order_id = None
-		else:
-			previous_batch_order_id = batch_order_id
+		data.append(row)
+		previous_batch_order_id = batch_order_id
+		previous_stock_entry_id = stock_entry_id
 
-		if process_order_id == previous_process_order_id:
-			row.process_order_id = None
-		else:
-			previous_process_order_id = process_order_id
-
-		if stock_entry_id == previous_stock_entry_id:
-			row.stock_entry_id = None
-		else:
-			previous_stock_entry_id = stock_entry_id
-
-	return rows
+	return data
 
 
 def get_conditions(filters: frappe._dict) -> tuple[str, dict]:

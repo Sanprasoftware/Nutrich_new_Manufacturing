@@ -1,0 +1,38 @@
+{
+ "app": "nutrich_manf",
+ "charts": [],
+ "content": "[{\"id\":\"GDXQk4T8P2\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Welcome to the Dev workspace</span>\",\"col\":12}},{\"id\":\"rBaFRRqzNW\",\"type\":\"paragraph\",\"data\":{\"text\":\"Click on \\n\\t\\t\\t\\n\\t\\t\\t\\n\\t\\t to edit\",\"col\":12}},{\"id\":\"xT8e7CsPIE\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Process Order\",\"col\":3}}]",
+ "creation": "2026-07-22 14:40:48.792106",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "hide_custom": 0,
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "Dev",
+ "link_type": "DocType",
+ "links": [],
+ "modified": "2026-07-22 14:44:43.081989",
+ "modified_by": "nutrich.softwarecoordinator@gmail.com",
+ "module": "Nutrich_Manf",
+ "name": "Dev",
+ "number_cards": [],
+ "owner": "nutrich.softwarecoordinator@gmail.com",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 0.0,
+ "shortcuts": [
+  {
+   "color": "Red",
+   "doc_view": "List",
+   "label": "Process Order",
+   "link_to": "Process Order s",
+   "stats_filter": "[]",
+   "type": "DocType"
+  }
+ ],
+ "title": "Dev",
+ "type": "Workspace"
+}

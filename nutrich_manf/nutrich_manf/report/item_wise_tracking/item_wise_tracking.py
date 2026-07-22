@@ -1,4 +1,5 @@
 import frappe
+from frappe.utils import flt
 # Python Script Report (report.py)
 
 def execute(filters=None):
@@ -31,6 +32,8 @@ def get_columns():
         {"label": "Stock Out Value (Others)", "fieldname": "others_out_value", "fieldtype": "Currency", "width": 170},
         {"label": "Closing Balance Qty", "fieldname": "closing_qty", "fieldtype": "Float", "width": 150},
         {"label": "Closing Balance Value", "fieldname": "closing_value", "fieldtype": "Currency", "width": 160},
+        {"label": "Production Qty", "fieldname": "production_qty", "fieldtype": "Float", "width": 130},
+        {"label": "Consumption Qty", "fieldname": "consumption_qty", "fieldtype": "Float", "width": 140},
     ]
 
 def get_data(filters):
@@ -118,7 +121,12 @@ def get_data(filters):
     data = frappe.db.sql(query, values, as_dict=True)
 
     for row in data:
-        row.closing_qty = row.closing_qty or 0
-        row.closing_value = row.closing_value or 0
+        row.opening_qty = flt(row.opening_qty)
+        row.pr_qty = flt(row.pr_qty)
+        row.dn_qty = flt(row.dn_qty)
+        row.closing_qty = flt(row.closing_qty)
+        row.closing_value = flt(row.closing_value)
+        row.production_qty = flt(row.closing_qty + row.dn_qty - row.pr_qty - row.opening_qty)
+        row.consumption_qty = flt(row.opening_qty + row.pr_qty - row.dn_qty - row.closing_qty)
 
     return data

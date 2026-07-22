@@ -1,0 +1,20 @@
+{
+ "app": "nutrich_manf",
+ "bg_color": "blue",
+ "creation": "2026-07-22 12:16:58.724927",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "NRICH",
+ "link_to": "NRICH",
+ "link_type": "Workspace Sidebar",
+ "modified": "2026-07-22 12:20:24.845030",
+ "modified_by": "Administrator",
+ "name": "NRICH",
+ "owner": "Administrator",
+ "restrict_removal": 0,
+ "roles": [],
+ "standard": 1
+}
