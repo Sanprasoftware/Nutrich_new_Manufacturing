@@ -89,7 +89,7 @@
    "fieldname": "process_order_qty",
    "fieldtype": "Float",
    "label": "Process Order Qty",
-   "precision": "2",
+   "precision": "3",
    "reqd": 1
   },
   {
@@ -323,11 +323,11 @@
    "link_fieldname": "process_order"
   }
  ],
- "modified": "2026-03-27 15:51:39.215453",
+ "modified": "2026-07-29 10:59:11.844748",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "Process Order s",
- "naming_rule": "Expression",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {

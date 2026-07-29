@@ -25,7 +25,7 @@ def set_cost_center_payment_entry(doc, method):
         
 @frappe.whitelist()
 def set_cost_center_journal_entry(doc, method):
-    if doc.accounts:
+    if doc.accounts and not doc.is_system_generated:
         for row in doc.accounts:
             row.cost_center = doc.custom_cost_center
 
@@ -33,3 +33,7 @@ def set_material_request_cost_center(doc, method=None):
     if doc.items:
         for row in doc.items:
             row.cost_center = doc.custom_cost_center
+
+
+            # if not doc.custom_cost_center:
+            # frappe.throw("Plese set the cost center")

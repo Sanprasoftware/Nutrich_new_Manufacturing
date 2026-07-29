@@ -287,7 +287,7 @@
    "fieldname": "quantity",
    "fieldtype": "Float",
    "label": "Quantity",
-   "precision": "2"
+   "precision": "3"
   },
   {
    "fieldname": "update_qty",
@@ -339,7 +339,7 @@
    "link_fieldname": "custom_batch_order_id"
   }
  ],
- "modified": "2026-05-22 10:20:59.910215",
+ "modified": "2026-07-29 10:59:36.449052",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "Batch Order s",

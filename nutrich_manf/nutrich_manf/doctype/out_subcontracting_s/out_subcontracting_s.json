@@ -1,12 +1,14 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "naming_series:",
  "creation": "2026-02-07 13:17:32.634943",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "section_break_vgy8",
   "amended_from",
+  "naming_series",
   "supplier",
   "supplier_name",
   "process_order",
@@ -360,6 +362,13 @@
    "fieldname": "old_document_no",
    "fieldtype": "Data",
    "label": "Old Document No"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "\nCOUT/KodoliN./.FY./.#\nCOUT/Kodoli./.FY./.#\nCOUT/EMPLY./.FY./.#\nCOUT/Bagani./.FY./.#",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
@@ -371,10 +380,11 @@
    "link_fieldname": "custom_out_subcontracting_id"
   }
  ],
- "modified": "2026-07-13 10:28:50.815007",
+ "modified": "2026-07-29 11:56:58.264291",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "Out Subcontracting s",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {

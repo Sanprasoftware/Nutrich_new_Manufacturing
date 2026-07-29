@@ -107,7 +107,8 @@ class OutSubcontractings(Document):
 
 	def create_stock_entry(self):
 		stock_entry = frappe.new_doc("Stock Entry")
-		stock_entry.naming_series = "MTR/.FY./.#"
+		stock_entry.set_posting_time = 1
+		stock_entry.naming_series = "CMOUT./.FY./.#"
 		stock_entry.stock_entry_type = "Sub Contracting Out"
 		stock_entry.posting_date = self.posting_date
 		stock_entry.posting_time = self.posting_time
@@ -116,6 +117,7 @@ class OutSubcontractings(Document):
 		stock_entry.custom_out_subcontracting_id = self.name
 		stock_entry.bill_from_address = self.company_address
 		stock_entry.bill_to_address = self.supplier_address
+
 
 		for idx, item in enumerate(self.items or [], start=1):
 			if not item.source_warehouse or not item.target_warehouse:

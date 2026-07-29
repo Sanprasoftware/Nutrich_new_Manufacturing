@@ -1,12 +1,14 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "naming_series:",
  "creation": "2026-02-13 10:50:08.546878",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "section_break_xyi7",
   "amended_from",
+  "naming_series",
   "section_break_pphf",
   "supplier",
   "supplier_name",
@@ -238,16 +240,23 @@
    "fieldname": "old_document_no",
    "fieldtype": "Data",
    "label": "Old Document No"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-13 10:28:52.564035",
+ "modified": "2026-07-29 11:53:20.210036",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "In Subcontracting s",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {

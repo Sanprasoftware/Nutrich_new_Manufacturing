@@ -185,7 +185,7 @@ doc_events = {
         "before_save": "nutrich_manf.public.py.set_cost_center.set_cost_center_payment_entry"
     },
     "Journal Entry": {
-        "before_save": "nutrich_manf.public.py.set_cost_center.set_cost_center_journal_entry"
+        "on_submit": "nutrich_manf.public.py.journal_entry.validate_cost_center_balance"
     },
     "Material Request": {
         "before_save": "nutrich_manf.public.py.set_cost_center.set_material_request_cost_center"

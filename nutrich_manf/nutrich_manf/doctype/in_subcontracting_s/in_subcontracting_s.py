@@ -91,7 +91,8 @@ class InSubcontractings(Document):
 	
 	def create_stock_entry(self):
 		stock_entry = frappe.new_doc("Stock Entry")
-		stock_entry.naming_series = "MTR/.FY./.#"
+		stock_entry.naming_series = "CMIN./.FY./.#"
+		stock_entry.set_posting_time = 1
 		stock_entry.stock_entry_type = "Sub Contracting In"
 		stock_entry.posting_date = self.posting_date
 		stock_entry.posting_time = self.posting_time
