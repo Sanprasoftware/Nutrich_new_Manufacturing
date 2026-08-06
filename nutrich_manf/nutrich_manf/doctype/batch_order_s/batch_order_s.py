@@ -255,6 +255,26 @@ class BatchOrders(Document):
 				"warehouse": row.warehouse,
 			})
 
+		for row in self.process_definition_scrap or []:
+			adjusted_qty = flt(row.qty) * ratio
+			insub.append("scrap_items", {
+				"item_code": row.item_code,
+				"item_name": row.item_name,
+				"yeild": row.yeild,
+				"qty": adjusted_qty,
+				"uom": row.uom,
+				"rate": row.rate,
+				"amount": flt(adjusted_qty) * flt(row.rate),
+				"manufacturing_rate": row.manufacturing_rate,
+				"basic_rate": row.basic_rate,
+				"sale_rate": row.sale_rate,
+				"operation_cost": flt(row.operation_cost) * ratio,
+				"valuation_rate": row.valuation_rate,
+				"total_cost": flt(row.total_cost) * ratio,
+				"batch": row.batch,
+				"warehouse": row.warehouse,
+			})
+
 		return insub
 
 	

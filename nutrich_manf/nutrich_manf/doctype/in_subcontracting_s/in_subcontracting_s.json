@@ -29,6 +29,8 @@
   "in_raw_material",
   "section_break_jryd",
   "finish_items",
+  "section_break_vzut",
+  "scrap_items",
   "section_break_clpt",
   "total_raw_qty",
   "column_break_ilrk",
@@ -245,14 +247,25 @@
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "label": "Series",
+   "options": "\nCIN/KodoliN./.FY./.#\nCIN/Kodoli./.FY./.#\nCIN/EMPLY./.FY./.#\nCIN/Bagani./.FY./.#",
    "reqd": 1
+  },
+  {
+   "fieldname": "section_break_vzut",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "scrap_items",
+   "fieldtype": "Table",
+   "label": "Scrap Items",
+   "options": "In Subcontracting Scrap Items"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-29 11:53:20.210036",
+ "modified": "2026-08-05 10:58:10.964336",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "In Subcontracting s",

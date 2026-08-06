@@ -127,6 +127,22 @@ class InSubcontractings(Document):
 				"set_basic_rate_manually": 1,
 			})
 
+		for row in self.scrap_items or []:
+			stock_entry.append("items", {
+				"t_warehouse": row.warehouse or self.target_warehouse,
+				"item_code": row.item_code,
+				"item_name": row.item_name,
+				"qty": row.qty,
+				"basic_rate": row.rate or row.valuation_rate or row.basic_rate,
+				"basic_amount": row.amount,
+				"batch_no": row.batch,
+				"conversion_factor": 1,
+				"cost_center": self.cost_center,
+				"is_legacy_scrap_item": 1,
+				"set_basic_rate_manually": 1,
+				"allow_zero_valuation": 1,
+			})
+
 		stock_entry.insert()
 		stock_entry.submit()
 
