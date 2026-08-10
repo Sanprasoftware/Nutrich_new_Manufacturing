@@ -5,7 +5,7 @@ frappe.query_reports["Cost Center Wise Transfer"] = {
 	filters: [
 		{
 			fieldname: "company",
-			label: __("Company"),
+			label: __("Company"), 
 			fieldtype: "Link",
 			options: "Company",
 			default: frappe.defaults.get_user_default("Company"),
