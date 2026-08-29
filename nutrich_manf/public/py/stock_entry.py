@@ -344,8 +344,11 @@ def calculate_amount(doc,method=None):
         return
 
 def validate_value_difference(doc, method=None):
-    if doc.value_difference != doc.total_additional_costs:
-        if doc.value_difference <= 0 or doc.value_difference >= 0.10:
-            frappe.throw(
-                _("Value difference must be equal to total additional costs and cannot be negative.")
-            )
+    precision = doc.precision("value_difference")
+    value_difference = flt(doc.value_difference, precision)
+    total_additional_costs = flt(doc.total_additional_costs, precision)
+
+    if value_difference < 0 or value_difference != total_additional_costs:
+        frappe.throw(
+            _("Value difference must be equal to total additional costs and cannot be negative.")
+        )
