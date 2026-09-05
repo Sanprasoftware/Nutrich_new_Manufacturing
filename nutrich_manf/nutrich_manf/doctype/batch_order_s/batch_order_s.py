@@ -29,8 +29,8 @@ class BatchOrders(Document):
 		self._validate_batch_required()
 		self.process_defination_raw_amount()
 		self.calculatate_cost()
-		self.process_definition_finish_amount()
 		self.calculate_process_definition_scrap_amount()
+		self.process_definition_finish_amount()
 		self.calculate_total_out_qty_amount()
 		self.flags.ignore_validate_update_after_submit = True
 		frappe.logger().error("Update Cost Method Called")
@@ -41,8 +41,8 @@ class BatchOrders(Document):
 		self.process_defination_raw_amount()
 		self.calculatate_cost()
 		self.update_per_kg_cost()
-		self.process_definition_finish_amount()
 		self.calculate_process_definition_scrap_amount()
+		self.process_definition_finish_amount()
 		self.validate_batch_qty()
 
 
@@ -392,16 +392,17 @@ class BatchOrders(Document):
 		if self.quantity and self.process_definition_finish:
 			for row in self.process_definition_finish:
 				row.qty = self.quantity * row.yeild / 100
-			self.process_definition_finish_amount()
-		
+
 		if self.quantity and self.process_definition_scrap:
 			for row in self.process_definition_scrap:
 				row.qty = self.quantity * row.yeild / 100
-			self.calculate_process_definition_scrap_amount()
+
+		self.calculatate_cost()
+		self.calculate_process_definition_scrap_amount()
+		self.process_definition_finish_amount()
 		
 
 		self.calculate_total_out_qty_amount()
-		self.calculatate_cost()
 
  
 	# Process Definition raw Child Table Calculations
@@ -621,8 +622,16 @@ class BatchOrders(Document):
 		self.total_finish_qty = total_finish_qty
 
 
-		# ---------------- TOTAL INPUT AMOUNT ----------------
-		total_in_amt = (self.total_raw_amount or 0) + (self.total_cost or 0)
+		# Allocate only the production value left after valuing scrap/by-products.
+		total_production_cost = flt(self.total_raw_amount) + flt(self.total_cost)
+		total_in_amt = total_production_cost - flt(self.total_scrap_amount)
+		if total_in_amt < 0:
+			frappe.throw(
+				_("Scrap value {0} cannot exceed total production cost {1}.").format(
+					frappe.format_value(self.total_scrap_amount, {"fieldtype": "Currency"}),
+					frappe.format_value(total_production_cost, {"fieldtype": "Currency"}),
+				)
+			)
 
 
 		# ---------------- SECOND LOOP: SHARE, RATE, AMOUNT ----------------
@@ -671,87 +680,45 @@ class BatchOrders(Document):
 	# Process Definition Scrap Child Table Calculations------------------------------------------------------------------------------------
 	@frappe.whitelist()
 	def calculate_process_definition_scrap_amount(self):
-
 		total_scrap_qty = 0
 		total_scrap_amount = 0
-		total_qty_rate = 0
 
-		# ---------------- FIRST LOOP: QTY & TOTAL QTY*RATE ----------------
 		for row in self.process_definition_scrap:
 			val_rate = frappe.get_value(
 				"Bin",
 				{"item_code": row.item_code, "warehouse": row.warehouse},
-				"valuation_rate"
+				"valuation_rate",
 			) or 0
 
-			manuf_rate = frappe.get_value(
-				"Manufacturing Rate Chart s",
-				{"item_code": row.item_code, "process_type": self.process_type},
-				"rate"
-			) or 0
+			manuf_rate = 0
+			if self.process_type and row.item_code:
+				manuf_rate = frappe.get_value(
+					"Manufacturing Rate Chart s",
+					{"item_code": row.item_code, "process_type": self.process_type},
+					"rate",
+				) or 0
 
 			if row.item_code and row.yeild:
-				# row.qty = (row.yeild / 100) * (self.total_raw_qty or 0)
-				row.total_cost = (row.qty or 0) * val_rate
-			
+				row.total_cost = flt(row.qty) * flt(val_rate)
+
 			if row.item_code and row.qty and self.quantity > 0:
 				row.yeild = row.qty / self.quantity * 100
 
-			if self.process_type and row.item_code:
-				row.manufacturing_rate = manuf_rate
-				qty_rate = (row.qty or 0) * manuf_rate
-				total_qty_rate += qty_rate
-				row.mfg_chart_value = qty_rate
+			# Scrap/by-products are valued at the configured rate; production
+			# cost must not be allocated to them a second time.
+			row.manufacturing_rate = flt(manuf_rate)
+			row.valuation_rate = flt(manuf_rate)
+			row.mfg_chart_value = flt(row.qty) * flt(manuf_rate)
+			row.amount = flt(row.mfg_chart_value, row.precision("amount"))
+			row.share_percentage = 0
+			row.operation_cost = 0
+			row.basic_value = row.amount
 
-			if row.item_code and row.warehouse:
-				row.valuation_rate = val_rate
-
-			total_scrap_qty += (row.qty or 0)
-
-		self.total_scrap_qty = total_scrap_qty
-
-
-		# ---------------- TOTAL INPUT AMOUNT ----------------
-		total_in_amt = (self.total_raw_amount or 0) + (self.total_cost or 0)
-
-
-		# ---------------- SECOND LOOP: SHARE, RATE, AMOUNT ----------------
-		for row in self.process_definition_scrap:
-			manuf_rate = row.manufacturing_rate or 0
-			qty_rate = (row.qty or 0) * manuf_rate
-
-			if total_qty_rate:
-				share = qty_rate / total_qty_rate
-			else:
-				share = 0
- 
-			row.share_percentage = share * 100
-
-			# allocated amount for this scrap row
-			process_amt = total_in_amt * share
-
-			if row.qty:
-				row.valuation_rate = process_amt / row.qty
-			else:
-				row.valuation_rate = 0
-
-			row.amount = flt((row.qty or 0) * (row.valuation_rate or 0), row.precision("amount"))
-
+			total_scrap_qty += flt(row.qty)
 			total_scrap_amount += flt(row.amount)
 
+		self.total_scrap_qty = flt(total_scrap_qty, self.precision("total_scrap_qty"))
 		self.total_scrap_amount = flt(total_scrap_amount, self.precision("total_scrap_amount"))
-
-
-		# ---------------- OPERATION COST SPLIT ----------------
-		if self.total_cost and self.total_scrap_amount:
-			for row in self.process_definition_scrap:
-				if row.amount:
-					row.operation_cost = (
-						row.amount / self.total_scrap_amount
-					) * self.total_cost
-					row.operation_cost = flt(row.operation_cost, row.precision("operation_cost"))
-					row.basic_value = flt(row.amount - row.operation_cost, row.precision("basic_value"))
-
 
 
 	# Total Out Qty & Amount Calculations------------------------------------------------------------------------------------	
@@ -770,7 +737,7 @@ class BatchOrders(Document):
 		self.difference_quantity = self.total_raw_qty - self.total_out_qty
 		# self.difference_amount = self.total_raw_amount + self.total_cost - self.total_out_material_amount
 		self.difference_amount = flt(
-			self.total_finish_amount - self.total_raw_amount,
+			self.total_out_material_amount - self.total_raw_amount,
 			self.precision("difference_amount"),
 		)
  
