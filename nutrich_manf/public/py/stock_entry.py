@@ -60,6 +60,32 @@ from nutrich_manf.nutrich_manf.doctype.batch_order_s.batch_order_s import (
 class FinishedGoodError(frappe.ValidationError):
 	pass
 
+
+def get_previous_item_warehouse_rate(item_code, warehouse, posting_date, posting_time, voucher_no=None):
+    filters = {
+        "item_code": item_code,
+        "warehouse": warehouse,
+        "is_cancelled": 0,
+        "posting_datetime": ("<", f"{posting_date} {posting_time}"),
+    }
+    if voucher_no:
+        filters["voucher_no"] = ("!=", voucher_no)
+
+    previous_rate = frappe.db.get_value(
+        "Stock Ledger Entry",
+        filters,
+        "valuation_rate",
+        order_by="posting_datetime desc, creation desc",
+    )
+    if flt(previous_rate) > 0:
+        return flt(previous_rate)
+
+    item_rate = frappe.db.get_value("Item", item_code, "valuation_rate")
+    if flt(item_rate) > 0:
+        return flt(item_rate)
+
+    return flt(frappe.db.get_value("Item", item_code, "last_purchase_rate"))
+
 class customStockEntry(StockEntry):
 
     def before_validate(self):
@@ -72,6 +98,59 @@ class customStockEntry(StockEntry):
     def validate(self):
         super().validate()
         self.validate_batch_order_raw_qty()
+
+    def before_submit(self):
+        super_method = getattr(super(), "before_submit", None)
+        if super_method:
+            super_method()
+        self.validate_incoming_rate_variance()
+
+    def validate_incoming_rate_variance(self):
+        """Block abnormal incoming rates using the previous item/warehouse valuation."""
+        tolerance = flt(frappe.conf.get("incoming_rate_variance_limit_percent", 50))
+        if tolerance < 0:
+            return
+
+        for row in self.items or []:
+            if not row.t_warehouse or not flt(row.transfer_qty):
+                continue
+
+            incoming_rate = flt(row.valuation_rate or row.basic_rate)
+            if not incoming_rate and row.allow_zero_valuation_rate:
+                continue
+
+            previous_rate = get_previous_item_warehouse_rate(
+                row.item_code,
+                row.t_warehouse,
+                self.posting_date,
+                self.posting_time,
+                self.name,
+            )
+            if previous_rate <= 0:
+                continue
+
+            lower_rate = previous_rate * max(0, 1 - tolerance / 100)
+            upper_rate = previous_rate * (1 + tolerance / 100)
+            if lower_rate <= incoming_rate <= upper_rate:
+                continue
+
+            frappe.throw(
+                _(
+                    "Row {0}: Incoming rate {1} for Item {2} in Warehouse {3} is outside "
+                    "the allowed {4}% variance from previous valuation rate {5}. "
+                    "Allowed range is {6} to {7}."
+                ).format(
+                    row.idx,
+                    frappe.format_value(incoming_rate, {"fieldtype": "Currency"}),
+                    bold(row.item_code),
+                    bold(row.t_warehouse),
+                    tolerance,
+                    frappe.format_value(previous_rate, {"fieldtype": "Currency"}),
+                    frappe.format_value(lower_rate, {"fieldtype": "Currency"}),
+                    frappe.format_value(upper_rate, {"fieldtype": "Currency"}),
+                ),
+                title=_("Abnormal Incoming Rate"),
+            )
 
     def after_insert(self):
         self.call_super_method("after_insert")
