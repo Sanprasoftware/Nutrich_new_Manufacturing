@@ -116,7 +116,8 @@ class customStockEntry(StockEntry):
                 continue
 
             incoming_rate = flt(row.valuation_rate or row.basic_rate)
-            if not incoming_rate and row.allow_zero_valuation_rate:
+            # Preserve zero rates produced by stock valuation calculations.
+            if not incoming_rate:
                 continue
 
             previous_rate = get_previous_item_warehouse_rate(
