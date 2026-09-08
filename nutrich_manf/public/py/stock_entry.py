@@ -6,8 +6,6 @@ from frappe import _, bold
 from frappe.model.mapper import get_mapped_doc
 from frappe.query_builder.functions import Sum
 from frappe.utils import (
-	add_months,
-	get_datetime,
 	cint,
 	comma_or,
 	cstr,
@@ -63,26 +61,18 @@ class FinishedGoodError(frappe.ValidationError):
 	pass
 
 
-def get_highest_item_warehouse_incoming_rate(item_code, warehouse, posting_date, posting_time, voucher_no=None):
-    """Find the highest positive receipt rate in the preceding five calendar months."""
-    posting_datetime = get_datetime(f"{posting_date} {posting_time or '00:00:00'}")
-    filters = [
-        ["item_code", "=", item_code],
-        ["warehouse", "=", warehouse],
-        ["is_cancelled", "=", 0],
-        ["actual_qty", ">", 0],
-        ["incoming_rate", ">", 0],
-        ["posting_datetime", ">=", add_months(posting_datetime, -5)],
-        ["posting_datetime", "<", posting_datetime],
-    ]
-    if voucher_no:
-        filters.append(["voucher_no", "!=", voucher_no])
-
-    return frappe.db.get_value(
-        "Stock Ledger Entry",
-        filters,
-        ["incoming_rate", "voucher_type", "voucher_no", "posting_datetime"],
-        order_by="incoming_rate desc, posting_datetime desc, creation desc",
+def get_item_stock_balance_rates(item_code, company):
+    """Current valuation rates across the company's warehouses, in stock UOM."""
+    return frappe.db.sql(
+        """
+        SELECT bin.warehouse, bin.valuation_rate
+        FROM `tabBin` bin
+        INNER JOIN `tabWarehouse` warehouse ON warehouse.name = bin.warehouse
+        WHERE bin.item_code = %s AND warehouse.company = %s
+            AND bin.valuation_rate > 0
+        ORDER BY bin.warehouse
+        """,
+        (item_code, company),
         as_dict=True,
     )
 
@@ -106,11 +96,15 @@ class customStockEntry(StockEntry):
         self.validate_incoming_rate_variance()
 
     def validate_incoming_rate_variance(self):
-        """Cap increases against the highest receipt rate in the prior five months."""
+        """Accept a rate within configured bounds of any warehouse valuation."""
         tolerance = flt(frappe.conf.get("incoming_rate_variance_limit_percent", 50))
         if tolerance < 0:
             return
 
+        minimum_percent = flt(frappe.conf.get("incoming_rate_min_percent", 100 - tolerance))
+        maximum_percent = flt(frappe.conf.get("incoming_rate_max_percent", 100 + tolerance))
+
+        references_by_item = {}
         for row in self.items or []:
             if not row.t_warehouse or not flt(row.transfer_qty):
                 continue
@@ -120,37 +114,44 @@ class customStockEntry(StockEntry):
             if not incoming_rate:
                 continue
 
-            reference = get_highest_item_warehouse_incoming_rate(
-                row.item_code,
-                row.t_warehouse,
-                self.posting_date,
-                self.posting_time,
-                self.name,
-            )
-            if not reference:
+            if row.item_code not in references_by_item:
+                references_by_item[row.item_code] = get_item_stock_balance_rates(
+                    row.item_code, self.company
+                )
+            references = references_by_item[row.item_code]
+            # New items without a positive valuation retain their existing behavior.
+            if not references:
                 continue
 
-            previous_rate = flt(reference.incoming_rate)
-            upper_rate = previous_rate * (1 + tolerance / 100)
-            if incoming_rate <= upper_rate:
+            precision = row.precision("valuation_rate")
+            incoming_rate = flt(incoming_rate, precision)
+            if any(
+                flt(flt(reference.valuation_rate) * (minimum_percent / 100), precision)
+                <= incoming_rate
+                <= flt(flt(reference.valuation_rate) * (maximum_percent / 100), precision)
+                for reference in references
+            ):
                 continue
 
             frappe.throw(
                 _(
-                    "Row {0}: Incoming rate {1} for Item {2} in Warehouse {3} exceeds "
-                    "the allowed {4}% increase over the highest incoming rate {5} "
-                    "in the preceding 5 months. Maximum allowed rate is {6}. "
-                    "Reference: {7}, posted at {8}."
+                    "Row {0}: Incoming rate {1} for Item {2} is outside the allowed "
+                    "{3}% to {4}% of every warehouse valuation rate in the current Stock "
+                    "Balance for Company {5}. Warehouse valuation rates: {6}."
                 ).format(
                     row.idx,
                     frappe.format_value(incoming_rate, {"fieldtype": "Currency"}),
                     bold(row.item_code),
-                    bold(row.t_warehouse),
-                    tolerance,
-                    frappe.format_value(previous_rate, {"fieldtype": "Currency"}),
-                    frappe.format_value(upper_rate, {"fieldtype": "Currency"}),
-                    get_link_to_form(reference.voucher_type, reference.voucher_no),
-                    reference.posting_datetime,
+                    minimum_percent,
+                    maximum_percent,
+                    bold(self.company),
+                    "; ".join(
+                        "{0}: {1}".format(
+                            bold(reference.warehouse),
+                            frappe.format_value(reference.valuation_rate, {"fieldtype": "Currency"}),
+                        )
+                        for reference in references
+                    ),
                 ),
                 title=_("Abnormal Incoming Rate"),
             )
