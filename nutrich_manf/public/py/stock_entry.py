@@ -6,6 +6,8 @@ from frappe import _, bold
 from frappe.model.mapper import get_mapped_doc
 from frappe.query_builder.functions import Sum
 from frappe.utils import (
+	add_months,
+	get_datetime,
 	cint,
 	comma_or,
 	cstr,
@@ -61,30 +63,28 @@ class FinishedGoodError(frappe.ValidationError):
 	pass
 
 
-def get_previous_item_warehouse_rate(item_code, warehouse, posting_date, posting_time, voucher_no=None):
-    filters = {
-        "item_code": item_code,
-        "warehouse": warehouse,
-        "is_cancelled": 0,
-        "posting_datetime": ("<", f"{posting_date} {posting_time}"),
-    }
+def get_highest_item_warehouse_incoming_rate(item_code, warehouse, posting_date, posting_time, voucher_no=None):
+    """Find the highest positive receipt rate in the preceding five calendar months."""
+    posting_datetime = get_datetime(f"{posting_date} {posting_time or '00:00:00'}")
+    filters = [
+        ["item_code", "=", item_code],
+        ["warehouse", "=", warehouse],
+        ["is_cancelled", "=", 0],
+        ["actual_qty", ">", 0],
+        ["incoming_rate", ">", 0],
+        ["posting_datetime", ">=", add_months(posting_datetime, -5)],
+        ["posting_datetime", "<", posting_datetime],
+    ]
     if voucher_no:
-        filters["voucher_no"] = ("!=", voucher_no)
+        filters.append(["voucher_no", "!=", voucher_no])
 
-    previous_rate = frappe.db.get_value(
+    return frappe.db.get_value(
         "Stock Ledger Entry",
         filters,
-        "valuation_rate",
-        order_by="posting_datetime desc, creation desc",
+        ["incoming_rate", "voucher_type", "voucher_no", "posting_datetime"],
+        order_by="incoming_rate desc, posting_datetime desc, creation desc",
+        as_dict=True,
     )
-    if flt(previous_rate) > 0:
-        return flt(previous_rate)
-
-    item_rate = frappe.db.get_value("Item", item_code, "valuation_rate")
-    if flt(item_rate) > 0:
-        return flt(item_rate)
-
-    return flt(frappe.db.get_value("Item", item_code, "last_purchase_rate"))
 
 class customStockEntry(StockEntry):
 
@@ -106,7 +106,7 @@ class customStockEntry(StockEntry):
         self.validate_incoming_rate_variance()
 
     def validate_incoming_rate_variance(self):
-        """Block abnormal incoming rates using the previous item/warehouse valuation."""
+        """Cap increases against the highest receipt rate in the prior five months."""
         tolerance = flt(frappe.conf.get("incoming_rate_variance_limit_percent", 50))
         if tolerance < 0:
             return
@@ -120,26 +120,27 @@ class customStockEntry(StockEntry):
             if not incoming_rate:
                 continue
 
-            previous_rate = get_previous_item_warehouse_rate(
+            reference = get_highest_item_warehouse_incoming_rate(
                 row.item_code,
                 row.t_warehouse,
                 self.posting_date,
                 self.posting_time,
                 self.name,
             )
-            if previous_rate <= 0:
+            if not reference:
                 continue
 
-            lower_rate = previous_rate * max(0, 1 - tolerance / 100)
+            previous_rate = flt(reference.incoming_rate)
             upper_rate = previous_rate * (1 + tolerance / 100)
-            if lower_rate <= incoming_rate <= upper_rate:
+            if incoming_rate <= upper_rate:
                 continue
 
             frappe.throw(
                 _(
-                    "Row {0}: Incoming rate {1} for Item {2} in Warehouse {3} is outside "
-                    "the allowed {4}% variance from previous valuation rate {5}. "
-                    "Allowed range is {6} to {7}."
+                    "Row {0}: Incoming rate {1} for Item {2} in Warehouse {3} exceeds "
+                    "the allowed {4}% increase over the highest incoming rate {5} "
+                    "in the preceding 5 months. Maximum allowed rate is {6}. "
+                    "Reference: {7}, posted at {8}."
                 ).format(
                     row.idx,
                     frappe.format_value(incoming_rate, {"fieldtype": "Currency"}),
@@ -147,8 +148,9 @@ class customStockEntry(StockEntry):
                     bold(row.t_warehouse),
                     tolerance,
                     frappe.format_value(previous_rate, {"fieldtype": "Currency"}),
-                    frappe.format_value(lower_rate, {"fieldtype": "Currency"}),
                     frappe.format_value(upper_rate, {"fieldtype": "Currency"}),
+                    get_link_to_form(reference.voucher_type, reference.voucher_no),
+                    reference.posting_datetime,
                 ),
                 title=_("Abnormal Incoming Rate"),
             )
