@@ -6,6 +6,8 @@ from frappe import _, bold
 from frappe.model.mapper import get_mapped_doc
 from frappe.query_builder.functions import Sum
 from frappe.utils import (
+	add_months,
+	get_datetime,
 	cint,
 	comma_or,
 	cstr,
@@ -61,6 +63,30 @@ class FinishedGoodError(frappe.ValidationError):
 	pass
 
 
+def get_highest_item_warehouse_incoming_rate(item_code, warehouse, posting_date, posting_time, voucher_no=None):
+    """Find the highest positive receipt rate in the preceding five calendar months."""
+    posting_datetime = get_datetime(f"{posting_date} {posting_time or '00:00:00'}")
+    filters = [
+        ["item_code", "=", item_code],
+        ["warehouse", "=", warehouse],
+        ["is_cancelled", "=", 0],
+        ["actual_qty", ">", 0],
+        ["incoming_rate", ">", 0],
+        ["posting_datetime", ">=", add_months(posting_datetime, -5)],
+        ["posting_datetime", "<", posting_datetime],
+    ]
+    if voucher_no:
+        filters.append(["voucher_no", "!=", voucher_no])
+
+    return frappe.db.get_value(
+        "Stock Ledger Entry",
+        filters,
+        ["incoming_rate", "voucher_type", "voucher_no", "posting_datetime"],
+        order_by="incoming_rate desc, posting_datetime desc, creation desc",
+        as_dict=True,
+    )
+
+
 def get_item_stock_balance_rates(item_code, company):
     """Current valuation rates across the company's warehouses, in stock UOM."""
     return frappe.db.sql(
@@ -96,7 +122,7 @@ class customStockEntry(StockEntry):
         self.validate_incoming_rate_variance()
 
     def validate_incoming_rate_variance(self):
-        """Accept a rate within configured bounds of any warehouse valuation."""
+        """Try the historical receipt cap first, then current warehouse valuations."""
         tolerance = flt(frappe.conf.get("incoming_rate_variance_limit_percent", 50))
         if tolerance < 0:
             return
@@ -104,6 +130,7 @@ class customStockEntry(StockEntry):
         minimum_percent = flt(frappe.conf.get("incoming_rate_min_percent", 100 - tolerance))
         maximum_percent = flt(frappe.conf.get("incoming_rate_max_percent", 100 + tolerance))
 
+        ledger_references = {}
         references_by_item = {}
         for row in self.items or []:
             if not row.t_warehouse or not flt(row.transfer_qty):
@@ -114,13 +141,23 @@ class customStockEntry(StockEntry):
             if not incoming_rate:
                 continue
 
+            ledger_key = (row.item_code, row.t_warehouse)
+            if ledger_key not in ledger_references:
+                ledger_references[ledger_key] = get_highest_item_warehouse_incoming_rate(
+                    row.item_code, row.t_warehouse, self.posting_date,
+                    self.posting_time, self.name,
+                )
+            ledger_reference = ledger_references[ledger_key]
+            if ledger_reference and incoming_rate <= flt(ledger_reference.incoming_rate) * (1 + tolerance / 100):
+                continue
+
             if row.item_code not in references_by_item:
                 references_by_item[row.item_code] = get_item_stock_balance_rates(
                     row.item_code, self.company
                 )
             references = references_by_item[row.item_code]
-            # New items without a positive valuation retain their existing behavior.
-            if not references:
+            # Preserve first-time item behavior only when neither source has a rate.
+            if not ledger_reference and not references:
                 continue
 
             precision = row.precision("valuation_rate")
@@ -135,8 +172,11 @@ class customStockEntry(StockEntry):
 
             frappe.throw(
                 _(
-                    "Row {0}: Incoming rate {1} for Item {2} is outside the allowed "
-                    "{3}% to {4}% of every warehouse valuation rate in the current Stock "
+                    "Row {0}: Incoming rate {1} for Item {2} did not pass the Stock Ledger "
+                    "check ({7}% maximum increase over the highest incoming rate in the "
+                    "preceding 5 months for the target warehouse), and no Stock Balance "
+                    "valuation rate matched. The allowed range is "
+                    "{3}% to {4}% of any warehouse valuation rate in the current Stock "
                     "Balance for Company {5}. Warehouse valuation rates: {6}."
                 ).format(
                     row.idx,
@@ -151,7 +191,8 @@ class customStockEntry(StockEntry):
                             frappe.format_value(reference.valuation_rate, {"fieldtype": "Currency"}),
                         )
                         for reference in references
-                    ),
+                    ) or _("None available"),
+                    tolerance,
                 ),
                 title=_("Abnormal Incoming Rate"),
             )
