@@ -480,9 +480,10 @@ class BatchOrders(Document):
 				# -----------------------------
 				if row.batch:
 
-					# Get valuation rate using Serial & Batch Bundle
+					# Get the batch's average valuation rate using Serial & Batch Bundle
+					# Change by devika on 25/09/2026
 					sle = frappe.db.sql("""
-						SELECT sle.incoming_rate
+						SELECT sle.valuation_rate
 						FROM `tabStock Ledger Entry` sle
 						INNER JOIN `tabSerial and Batch Entry` sbe
 							ON sbe.parent = sle.serial_and_batch_bundle
@@ -503,7 +504,7 @@ class BatchOrders(Document):
 					), as_dict=True)
 
 					if sle:
-						val_rate = flt(sle[0].incoming_rate)
+						val_rate = flt(sle[0].valuation_rate)
 
 					# Stock Reconciliation Fallback
 					if not val_rate:
