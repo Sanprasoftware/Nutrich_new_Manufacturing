@@ -17,6 +17,8 @@ def get_columns():
         {"label": "Purchase Receipt Qty", "fieldname": "pr_qty", "fieldtype": "Float", "width": 150},
         {"label": "Purchase Receipt Value", "fieldname": "pr_value", "fieldtype": "Currency", "width": 150},
         {"label": "Delivery Note Qty", "fieldname": "dn_qty", "fieldtype": "Float", "width": 140},
+        {"label": "Sales Invoice Qty (Update Stock)", "fieldname": "sales_invoice_qty", "fieldtype": "Float", "width": 190},
+        {"label": "Sales Invoice Amount (Update Stock)", "fieldname": "sales_invoice_amount", "fieldtype": "Currency", "width": 210},
         {"label": "Delivery Note Value", "fieldname": "dn_value", "fieldtype": "Currency", "width": 150},
         {"label": "Stock In Qty (Mfg)", "fieldname": "mfg_in_qty", "fieldtype": "Float", "width": 140},
         {"label": "Stock In Value (Mfg)", "fieldname": "mfg_in_value", "fieldtype": "Currency", "width": 150},
@@ -89,6 +91,8 @@ def get_data(filters):
             SUM(CASE WHEN sle.voucher_type = 'Purchase Receipt' AND sle.posting_date BETWEEN %(from_date)s AND %(to_date)s THEN sle.actual_qty ELSE 0 END) as pr_qty,
             SUM(CASE WHEN sle.voucher_type = 'Purchase Receipt' AND sle.posting_date BETWEEN %(from_date)s AND %(to_date)s THEN COALESCE(pri.base_amount, pri.amount, sle.stock_value_difference) ELSE 0 END) as pr_value,
             SUM(CASE WHEN sle.voucher_type = 'Delivery Note' AND sle.posting_date BETWEEN %(from_date)s AND %(to_date)s THEN ABS(sle.actual_qty) ELSE 0 END) as dn_qty,
+            SUM(CASE WHEN sle.voucher_type = 'Sales Invoice' AND si.update_stock = 1 AND sle.posting_date BETWEEN %(from_date)s AND %(to_date)s THEN ABS(sle.actual_qty) ELSE 0 END) as sales_invoice_qty,
+            SUM(CASE WHEN sle.voucher_type = 'Sales Invoice' AND si.update_stock = 1 AND sle.posting_date BETWEEN %(from_date)s AND %(to_date)s THEN COALESCE(sii.base_amount, sii.amount, ABS(sle.stock_value_difference)) ELSE 0 END) as sales_invoice_amount,
             SUM(CASE WHEN sle.voucher_type = 'Delivery Note' AND sle.posting_date BETWEEN %(from_date)s AND %(to_date)s THEN COALESCE(dni.base_amount, dni.amount, ABS(sle.stock_value_difference)) ELSE 0 END) as dn_value,
             SUM(CASE WHEN sle.voucher_type = 'Stock Entry' AND se.stock_entry_type = 'Manufacture' AND sed.is_finished_item = 1 AND sle.posting_date BETWEEN %(from_date)s AND %(to_date)s THEN ABS(sle.actual_qty) ELSE 0 END) as mfg_in_qty,
             SUM(CASE WHEN sle.voucher_type = 'Stock Entry' AND se.stock_entry_type = 'Manufacture' AND sed.is_finished_item = 1 AND sle.posting_date BETWEEN %(from_date)s AND %(to_date)s THEN ABS(COALESCE(sed.basic_amount, sed.amount, sle.stock_value_difference)) ELSE 0 END) as mfg_in_value,
@@ -110,9 +114,11 @@ def get_data(filters):
         LEFT JOIN `tabStock Entry Detail` sed ON sle.voucher_detail_no = sed.name AND sle.voucher_type = 'Stock Entry'
         LEFT JOIN `tabPurchase Receipt Item` pri ON sle.voucher_detail_no = pri.name AND sle.voucher_type = 'Purchase Receipt'
         LEFT JOIN `tabDelivery Note Item` dni ON sle.voucher_detail_no = dni.name AND sle.voucher_type = 'Delivery Note'
+        LEFT JOIN `tabSales Invoice` si ON sle.voucher_no = si.name AND sle.voucher_type = 'Sales Invoice'
+        LEFT JOIN `tabSales Invoice Item` sii ON sle.voucher_detail_no = sii.name AND sle.voucher_type = 'Sales Invoice'
         WHERE {conditions}
         GROUP BY sle.item_code, i.item_name
-        HAVING ABS(opening_qty) > 0 OR ABS(pr_qty) > 0 OR ABS(dn_qty) > 0
+        HAVING ABS(opening_qty) > 0 OR ABS(pr_qty) > 0 OR ABS(dn_qty) > 0 OR ABS(sales_invoice_qty) > 0 OR ABS(sales_invoice_amount) > 0
             OR ABS(mfg_in_qty) > 0 OR ABS(mfg_out_qty) > 0
             OR ABS(repack_in_qty) > 0 OR ABS(repack_out_qty) > 0
             OR ABS(others_in_qty) > 0 OR ABS(others_out_qty) > 0
