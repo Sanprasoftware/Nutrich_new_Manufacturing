@@ -238,7 +238,7 @@ class customStockEntry(StockEntry):
         remaining_qty = flt(flt(batch_order_qty) - flt(used_qty), raw_qty_precision)
         current_raw_qty = sum(flt(row.qty) for row in self.items if row.s_warehouse)
         current_raw_qty = flt(current_raw_qty, raw_qty_precision)
-
+ 
         if current_raw_qty > remaining_qty:
             frappe.throw(
                 _(
