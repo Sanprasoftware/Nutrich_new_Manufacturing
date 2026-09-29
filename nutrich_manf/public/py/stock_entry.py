@@ -234,8 +234,10 @@ class customStockEntry(StockEntry):
             return
 
         used_qty = get_stock_entry_raw_qty_for_batch_order(self.custom_batch_order_id, self.name)
-        remaining_qty = flt(batch_order_qty) - flt(used_qty)
+        raw_qty_precision = frappe.get_precision("Batch Order s", "total_raw_qty") or 3
+        remaining_qty = flt(flt(batch_order_qty) - flt(used_qty), raw_qty_precision)
         current_raw_qty = sum(flt(row.qty) for row in self.items if row.s_warehouse)
+        current_raw_qty = flt(current_raw_qty, raw_qty_precision)
 
         if current_raw_qty > remaining_qty:
             frappe.throw(
@@ -244,8 +246,8 @@ class customStockEntry(StockEntry):
                     "Stock Entry raw quantity cannot be {2}."
                 ).format(
                     self.custom_batch_order_id,
-                    flt(max(remaining_qty, 0), self.precision("fg_completed_qty")),
-                    flt(current_raw_qty, self.precision("fg_completed_qty")),
+                    flt(max(remaining_qty, 0), raw_qty_precision),
+                    flt(current_raw_qty, raw_qty_precision),
                 )
             )
 
@@ -256,7 +258,7 @@ class customStockEntry(StockEntry):
 
         source_rows = frappe.get_all(
             "Out Subcontracting Item s",
-            filters={
+            filters={code
                 "parent": self.custom_out_subcontracting_id,
                 "parenttype": "Out Subcontracting s",
                 "parentfield": "items",
