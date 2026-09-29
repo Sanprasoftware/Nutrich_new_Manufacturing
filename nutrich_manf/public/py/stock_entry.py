@@ -258,7 +258,7 @@ class customStockEntry(StockEntry):
 
         source_rows = frappe.get_all(
             "Out Subcontracting Item s",
-            filters={code
+            filters={
                 "parent": self.custom_out_subcontracting_id,
                 "parenttype": "Out Subcontracting s",
                 "parentfield": "items",
