@@ -767,7 +767,7 @@ def make_stock_entry(source_name, target_doc=None):
 		target.valuation_rate = flt(target.amount / flt(source.qty)) if flt(source.qty) else 0
 
 	def set_scrap_item_values(source, target, source_parent):
-		target.is_legacy_scrap_item = 1
+		target.secondary_item_type = "Scrap"
 		set_batch_item_values(source, target, source_parent)
 
 	def postprocess(source, target):
@@ -795,7 +795,7 @@ def make_stock_entry(source_name, target_doc=None):
 
 		# RAW MATERIALS → Source warehouse
 		for d in target.items:
-			if not d.is_finished_item and not d.is_legacy_scrap_item:
+			if not d.is_finished_item and not d.secondary_item_type == "Scrap":
 				d.s_warehouse = d.warehouse
 				d.t_warehouse = None
 				d.transfer_qty = d.qty
@@ -816,7 +816,8 @@ def make_stock_entry(source_name, target_doc=None):
 
 		# SCRAP ITEMS
 		for d in target.items:
-			if d.is_legacy_scrap_item:
+			if d.secondary_item_type == "Scrap":
+				d.secondary_item_type == "Scrap"
 				d.t_warehouse = d.warehouse
 				d.s_warehouse = None
 				d.transfer_qty = d.qty
@@ -960,6 +961,5 @@ def get_remaining_stock_entry_raw_qty(batch_order_name, exclude_stock_entry=None
 	batch_order_qty = frappe.db.get_value("Batch Order s", batch_order_name, "total_raw_qty")
 	used_qty = get_stock_entry_raw_qty_for_batch_order(batch_order_name, exclude_stock_entry)
 	return max(flt(batch_order_qty) - flt(used_qty), 0)
-
 
 

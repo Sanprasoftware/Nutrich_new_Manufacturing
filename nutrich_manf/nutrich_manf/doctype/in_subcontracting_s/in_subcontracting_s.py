@@ -138,7 +138,7 @@ class InSubcontractings(Document):
 				"batch_no": row.batch,
 				"conversion_factor": 1,
 				"cost_center": self.cost_center,
-				"is_legacy_scrap_item": 1,
+				"secondary_item_type" == "Scrap",
 				"set_basic_rate_manually": 1,
 				"allow_zero_valuation": 1,
 			})
