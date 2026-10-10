@@ -480,9 +480,28 @@ def validate_value_difference(doc, method=None):
         )
 
 
+def has_explicit_stock_value_repost_role(user=None):
+    user = user or frappe.session.user
+    return bool(
+        frappe.db.exists(
+            "Has Role",
+            {"parent": user, "parenttype": "User", "role": "Stock value repost"},
+        )
+    )
+
+
+@frappe.whitelist()
+def has_stock_value_repost_role():
+    """Check the explicit role assignment, without Administrator's role bypass."""
+    return has_explicit_stock_value_repost_role()
+
+
 @frappe.whitelist(methods=["POST"])
 def recreate_stock_ledger(stock_entry):
     """Create a submitted Repost Item Valuation for a Stock Entry and enqueue it."""
+    if not has_explicit_stock_value_repost_role():
+        frappe.throw(_("You need the Stock value repost role to recreate the ledger."), frappe.PermissionError)
+
     stock_entry_doc = frappe.get_doc("Stock Entry", stock_entry)
     stock_entry_doc.check_permission("read")
     if stock_entry_doc.docstatus != 1:
