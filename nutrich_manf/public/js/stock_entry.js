@@ -1,8 +1,30 @@
 frappe.ui.form.on('Stock Entry', {
     refresh(frm) {
-        if (frm.is_new()) {
-            return;
+        if (frm.doc.docstatus === 1) {
+            frm.add_custom_button(__('Recreate Ledger'), () => {
+                frappe.confirm(
+                    __('Create and submit a Repost Item Valuation for this Stock Entry, then start reposting?'),
+                    () => {
+                        frappe.call({
+                            method: 'nutrich_manf.public.py.stock_entry.recreate_stock_ledger',
+                            args: { stock_entry: frm.doc.name },
+                            freeze: true,
+                            freeze_message: __('Creating Repost Item Valuation and starting reposting...'),
+                            callback: (r) => {
+                                if (r.message && r.message.repost_item_valuation) {
+                                    frappe.show_alert({
+                                        message: __('Reposting started: {0}', [r.message.repost_item_valuation]),
+                                        indicator: 'green'
+                                    });
+                                }
+                            }
+                        });
+                    }
+                );
+            }).addClass('btn-primary');
         }
+
+        if (frm.is_new()) return;
         frm.add_custom_button('Create Gate Pass', () => {
             create_gate_pass_from_reference(frm);
         });

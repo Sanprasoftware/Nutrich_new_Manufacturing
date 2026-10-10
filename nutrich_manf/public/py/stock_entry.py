@@ -478,3 +478,53 @@ def validate_value_difference(doc, method=None):
         frappe.throw(
             _("Value difference must be equal to total additional costs and cannot be negative.")
         )
+
+
+@frappe.whitelist(methods=["POST"])
+def recreate_stock_ledger(stock_entry):
+    """Create a submitted Repost Item Valuation for a Stock Entry and enqueue it."""
+    stock_entry_doc = frappe.get_doc("Stock Entry", stock_entry)
+    stock_entry_doc.check_permission("read")
+    if stock_entry_doc.docstatus != 1:
+        frappe.throw(_("Recreate Ledger is available only for submitted Stock Entries."))
+
+    frappe.has_permission("Repost Item Valuation", "create", throw=True)
+    frappe.has_permission("Repost Item Valuation", "submit", throw=True)
+
+    pending = frappe.db.get_value(
+        "Repost Item Valuation",
+        {
+            "based_on": "Transaction",
+            "voucher_type": "Stock Entry",
+            "voucher_no": stock_entry_doc.name,
+            "docstatus": 1,
+            "status": ("in", ["Queued", "In Progress"]),
+        },
+        "name",
+    )
+    if pending:
+        frappe.throw(
+            _("Repost Item Valuation {0} is already queued or in progress for this Stock Entry.").format(
+                frappe.bold(pending)
+            )
+        )
+
+    repost = frappe.get_doc(
+        {
+            "doctype": "Repost Item Valuation",
+            "based_on": "Transaction",
+            "voucher_type": "Stock Entry",
+            "voucher_no": stock_entry_doc.name,
+            "recreate_stock_ledgers": 0,
+            "recalculate_valuation_rate": 1,
+        }
+    )
+    repost.insert()
+    repost.submit()
+
+    from erpnext.stock.doctype.repost_item_valuation.repost_item_valuation import (
+        enqueue_reposting_entry,
+    )
+
+    enqueue_reposting_entry(repost.name)
+    return {"repost_item_valuation": repost.name}
