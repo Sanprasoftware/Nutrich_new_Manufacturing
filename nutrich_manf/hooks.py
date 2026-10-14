@@ -136,7 +136,8 @@ doctype_js = {
 # Override standard doctype classes
 
 override_doctype_class = {
-	"Stock Entry": "nutrich_manf.public.py.stock_entry.customStockEntry"
+	"Stock Entry": "nutrich_manf.public.py.stock_entry.customStockEntry",
+	"Batch": "nutrich_manf.public.py.batch.CustomBatch",
 }
 
 # Document Events
