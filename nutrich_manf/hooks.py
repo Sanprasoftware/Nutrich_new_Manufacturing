@@ -137,7 +137,6 @@ doctype_js = {
 
 override_doctype_class = {
 	"Stock Entry": "nutrich_manf.public.py.stock_entry.customStockEntry",
-	"Batch": "nutrich_manf.public.py.batch.CustomBatch",
 }
 
 # Document Events
