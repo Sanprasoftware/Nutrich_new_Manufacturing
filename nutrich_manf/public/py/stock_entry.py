@@ -470,6 +470,9 @@ def calculate_amount(doc,method=None):
         return
 
 def validate_value_difference(doc, method=None):
+    if doc.purpose != "Manufacture":
+        return
+
     precision = doc.precision("value_difference")
     value_difference = flt(doc.value_difference, precision)
     total_additional_costs = flt(doc.total_additional_costs, precision)
