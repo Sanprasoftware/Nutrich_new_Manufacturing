@@ -797,6 +797,7 @@ def make_stock_entry(source_name, target_doc=None):
 		for d in target.items:
 			if not d.is_finished_item and not d.secondary_item_type == "Scrap":
 				d.s_warehouse = d.warehouse
+				d.use_serial_batch_fields = 1
 				d.t_warehouse = None
 				d.transfer_qty = d.qty
 				d.conversion_factor = 1
