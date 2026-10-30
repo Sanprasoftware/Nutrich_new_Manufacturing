@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_import": 1,
  "allow_rename": 1,
  "autoname": "format:{process_name}",
@@ -74,6 +75,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_bulk_edit": 1,
    "fieldname": "process_definition_raw",
    "fieldtype": "Table",
    "label": "Raw Material In (Definition)",
@@ -104,6 +106,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_bulk_edit": 1,
    "fieldname": "process_definition_cost",
    "fieldtype": "Table",
    "label": "Process Cost In (Definition)",
@@ -120,6 +123,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_bulk_edit": 1,
    "fieldname": "process_definition_finish",
    "fieldtype": "Table",
    "label": "Finish Items Out (Definition)",
@@ -150,6 +154,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_bulk_edit": 1,
    "fieldname": "process_definition_scrap",
    "fieldtype": "Table",
    "label": "Scrap Items Out (Definition)",
@@ -234,11 +239,11 @@
    "link_fieldname": "process_definition"
   }
  ],
- "modified": "2026-04-01 10:08:21.969119",
+ "modified": "2026-10-30 15:16:40.150522",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "Process Definition s",
- "naming_rule": "Expression",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {

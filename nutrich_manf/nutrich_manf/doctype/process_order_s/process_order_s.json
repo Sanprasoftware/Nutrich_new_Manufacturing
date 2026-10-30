@@ -97,6 +97,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_bulk_edit": 1,
    "fieldname": "process_definition_raw",
    "fieldtype": "Table",
    "label": "Raw Material In (Order)",
@@ -127,6 +128,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_bulk_edit": 1,
    "fieldname": "process_definition_cost",
    "fieldtype": "Table",
    "label": "Process Cost In (Order)",
@@ -143,6 +145,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_bulk_edit": 1,
    "allow_on_submit": 1,
    "fieldname": "process_definition_finish",
    "fieldtype": "Table",
@@ -174,6 +177,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_bulk_edit": 1,
    "fieldname": "process_definition_scrap",
    "fieldtype": "Table",
    "label": "Scrap Items Out (Order)",
@@ -323,7 +327,7 @@
    "link_fieldname": "process_order"
   }
  ],
- "modified": "2026-07-29 10:59:11.844748",
+ "modified": "2026-10-30 15:17:25.452724",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "Process Order s",

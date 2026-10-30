@@ -108,6 +108,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_bulk_edit": 1,
    "fieldname": "process_definition_raw",
    "fieldtype": "Table",
    "label": "Raw Material In (Batch)",
@@ -138,6 +139,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_bulk_edit": 1,
    "fieldname": "process_definition_cost",
    "fieldtype": "Table",
    "label": "Process Cost In (Batch)",
@@ -154,6 +156,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_bulk_edit": 1,
    "fieldname": "process_definition_finish",
    "fieldtype": "Table",
    "label": "Finish Items Out (Batch)",
@@ -184,6 +187,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_bulk_edit": 1,
    "fieldname": "process_definition_scrap",
    "fieldtype": "Table",
    "label": "Scrap Items Out (Batch)",
@@ -339,7 +343,7 @@
    "link_fieldname": "custom_batch_order_id"
   }
  ],
- "modified": "2026-07-29 10:59:36.449052",
+ "modified": "2026-10-30 15:18:03.776585",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "Batch Order s",
