@@ -123,7 +123,7 @@ class customStockEntry(StockEntry):
 
     def validate_incoming_rate_variance(self):
         """Try the historical receipt cap first, then current warehouse valuations."""
-        tolerance = flt(frappe.conf.get("incoming_rate_variance_limit_percent", 300))
+        tolerance = flt(frappe.conf.get("incoming_rate_variance_limit_percent", 3000))
         if tolerance < 0:
             return
 
