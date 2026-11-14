@@ -2,6 +2,13 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Gate Pass s', {
+    select_inout(frm) {
+        if (frm.doc.select_inout === 'In') {
+            frm.set_value('naming_series', 'GP/IN./.FY./.#');
+        } else if (frm.doc.select_inout === 'Out') {
+            frm.set_value('naming_series', 'GP/OUT./.FY./.#');
+        }
+    },
     setup(frm) {
         frm.set_query('reference_doctype', () => {
             return {

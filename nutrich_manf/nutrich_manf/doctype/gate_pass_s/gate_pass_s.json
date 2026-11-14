@@ -1,12 +1,16 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_rename": 1,
+ "autoname": "naming_series:",
  "creation": "2026-02-05 10:19:08.988793",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "section_break_8ban",
   "amended_from",
+  "column_break_lgmq",
+  "naming_series",
   "section_break_sfiz",
   "select_inout",
   "column_break_rgvi",
@@ -58,7 +62,8 @@
    "fieldname": "select_inout",
    "fieldtype": "Select",
    "label": "Select In/Out",
-   "options": "\nIn\nOut"
+   "options": "\nIn\nOut",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_rgvi",
@@ -194,13 +199,23 @@
    "fieldtype": "Table",
    "label": "Gate Pass Items",
    "options": "Gate Pass Items s"
+  },
+  {
+   "fieldname": "column_break_lgmq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "GP/IN./.FY./.#\nGP/OUT./.FY./.#"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-05 13:03:24.281425",
+ "modified": "2026-11-14 14:51:50.527904",
  "modified_by": "Administrator",
  "module": "Nutrich_Manf",
  "name": "Gate Pass s",
